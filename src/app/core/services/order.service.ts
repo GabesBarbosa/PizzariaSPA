@@ -9,19 +9,15 @@ export class OrderService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(): Observable<Order[]> {
-    return this.http.get<Order[]>(this.baseUrl);
-  }
-
-  getById(id: number): Observable<Order> {
-    return this.http.get<Order>(`${this.baseUrl}/${id}`);
+  getByCustomer(customerId: string): Observable<Order[]> {
+    return this.http.get<Order[]>(`${this.baseUrl}/customer/${customerId}`);
   }
 
   create(order: CreateOrderDto): Observable<Order> {
     return this.http.post<Order>(this.baseUrl, order);
   }
 
-  updateStatus(id: number, status: OrderStatus): Observable<Order> {
-    return this.http.put<Order>(`${this.baseUrl}/${id}/status`, { status });
+  updateStatus(id: string, status: OrderStatus): Observable<Order> {
+    return this.http.patch<Order>(`${this.baseUrl}/${id}/status`, { status });
   }
 }

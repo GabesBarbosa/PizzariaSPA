@@ -9,18 +9,39 @@
   width: 100%;
 }
 
-.status-recebido {
+.customer-suggestions {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.suggestion-item {
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.selected-customer {
+  margin-bottom: 16px;
+}
+
+.hint-text {
+  padding: 16px;
+  color: rgba(0, 0, 0, 0.54);
+  text-align: center;
+}
+
+.status-RECEIVED {
   background-color: #e3f2fd !important;
 }
 
-.status-preparando {
+.status-PREPARING {
   background-color: #fff3e0 !important;
 }
 
-.status-saiu_para_entrega {
+.status-OUT_FOR_DELIVERY {
   background-color: #e8f5e9 !important;
 }
 
-.status-entregue {
+.status-DELIVERED {
   background-color: #e0f2f1 !important;
 }

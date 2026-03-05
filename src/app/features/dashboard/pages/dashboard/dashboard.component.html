@@ -1,107 +1,51 @@
 <h1>Dashboard</h1>
-<app-loading *ngIf="loading"></app-loading>
 
-<div *ngIf="!loading">
-  <!-- Métricas -->
-  <div class="metrics-grid">
-    <mat-card class="metric-card">
-      <mat-card-content>
-        <div class="metric">
-          <mat-icon color="primary">receipt_long</mat-icon>
-          <div>
-            <div class="metric-value">{{ todayOrders.length }}</div>
-            <div class="metric-label">Pedidos Hoje</div>
-          </div>
+<div class="actions-grid">
+  <mat-card class="action-card" routerLink="/pedidos/novo">
+    <mat-card-content>
+      <div class="action">
+        <mat-icon color="primary">add_circle</mat-icon>
+        <div>
+          <div class="action-title">Novo Pedido</div>
+          <div class="action-desc">Criar um novo pedido</div>
         </div>
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-    <mat-card class="metric-card">
-      <mat-card-content>
-        <div class="metric">
-          <mat-icon color="accent">attach_money</mat-icon>
-          <div>
-            <div class="metric-value">{{ todayRevenue | brl }}</div>
-            <div class="metric-label">Faturamento Hoje</div>
-          </div>
+  <mat-card class="action-card" routerLink="/pedidos">
+    <mat-card-content>
+      <div class="action">
+        <mat-icon color="accent">receipt_long</mat-icon>
+        <div>
+          <div class="action-title">Pedidos</div>
+          <div class="action-desc">Buscar pedidos por cliente</div>
         </div>
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-    <mat-card class="metric-card">
-      <mat-card-content>
-        <div class="metric">
-          <mat-icon color="primary">people</mat-icon>
-          <div>
-            <div class="metric-value">{{ totalCustomers }}</div>
-            <div class="metric-label">Total de Clientes</div>
-          </div>
+  <mat-card class="action-card" routerLink="/clientes">
+    <mat-card-content>
+      <div class="action">
+        <mat-icon color="primary">people</mat-icon>
+        <div>
+          <div class="action-title">Clientes</div>
+          <div class="action-desc">Buscar e gerenciar clientes</div>
         </div>
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-    <mat-card class="metric-card">
-      <mat-card-content>
-        <div class="metric">
-          <mat-icon color="accent">local_pizza</mat-icon>
-          <div>
-            <div class="metric-value">{{ totalProducts }}</div>
-            <div class="metric-label">Produtos Cadastrados</div>
-          </div>
+  <mat-card class="action-card" routerLink="/clientes/novo">
+    <mat-card-content>
+      <div class="action">
+        <mat-icon color="accent">person_add</mat-icon>
+        <div>
+          <div class="action-title">Novo Cliente</div>
+          <div class="action-desc">Cadastrar um novo cliente</div>
         </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <!-- Pedidos do dia -->
-  <div class="section-grid">
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>Pedidos do Dia</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p *ngIf="todayOrders.length === 0" class="empty-text">Nenhum pedido hoje.</p>
-        <mat-list *ngIf="todayOrders.length > 0">
-          <mat-list-item *ngFor="let order of todayOrders" [routerLink]="['/pedidos', order.id]" class="clickable">
-            <mat-icon matListItemIcon>receipt</mat-icon>
-            <span matListItemTitle>
-              Pedido #{{ order.id }} - {{ order.customer?.name || 'N/A' }}
-            </span>
-            <span matListItemLine>
-              {{ order.total | brl }} ·
-              <mat-chip [class]="'status-chip status-' + order.status">
-                {{ getStatusLabel(order.status) }}
-              </mat-chip>
-            </span>
-          </mat-list-item>
-        </mat-list>
-      </mat-card-content>
-      <mat-card-actions>
-        <a mat-button routerLink="/pedidos">Ver todos os pedidos</a>
-      </mat-card-actions>
-    </mat-card>
-
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>Pedidos em Andamento</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p *ngIf="activeOrders.length === 0" class="empty-text">Nenhum pedido em andamento.</p>
-        <mat-list *ngIf="activeOrders.length > 0">
-          <mat-list-item *ngFor="let order of activeOrders" [routerLink]="['/pedidos', order.id]" class="clickable">
-            <mat-icon matListItemIcon [color]="order.status === 'preparando' ? 'warn' : 'primary'">
-              {{ order.status === 'preparando' ? 'local_fire_department' : 'delivery_dining' }}
-            </mat-icon>
-            <span matListItemTitle>
-              Pedido #{{ order.id }} - {{ order.customer?.name || 'N/A' }}
-            </span>
-            <span matListItemLine>{{ getStatusLabel(order.status) }}</span>
-          </mat-list-item>
-        </mat-list>
-      </mat-card-content>
-      <mat-card-actions>
-        <a mat-flat-button color="primary" routerLink="/pedidos/novo">Novo Pedido</a>
-      </mat-card-actions>
-    </mat-card>
-  </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>

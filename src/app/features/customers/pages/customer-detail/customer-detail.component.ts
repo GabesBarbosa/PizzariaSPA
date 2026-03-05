@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -34,15 +34,16 @@ export class CustomerDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private customerService: CustomerService,
     private orderService: OrderService
   ) {}
 
   ngOnInit(): void {
-    const id = +this.route.snapshot.paramMap.get('id')!;
+    const id = this.route.snapshot.paramMap.get('id')!;
     this.customerService.getById(id).subscribe(customer => {
       this.customer = customer;
-      this.loadOrders();
+      this.loadOrders(customer.id);
     });
   }
 
@@ -50,10 +51,19 @@ export class CustomerDetailComponent implements OnInit {
     return this.statusLabels[status as keyof typeof this.statusLabels] || status;
   }
 
-  private loadOrders(): void {
-    this.orderService.getAll().subscribe(orders => {
-      this.orders = orders.filter(o => o.customerId === this.customer!.id);
-      this.loading = false;
+  viewOrder(order: Order): void {
+    this.router.navigate(['/pedidos', order.id], { state: { order } });
+  }
+
+  private loadOrders(customerId: string): void {
+    this.orderService.getByCustomer(customerId).subscribe({
+      next: (orders) => {
+        this.orders = orders;
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      }
     });
   }
 }

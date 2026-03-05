@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,7 +13,6 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { Order, OrderStatus } from '../../../../shared/models';
 import { OrderService } from '../../../../core/services/order.service';
-import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
 import { BrlPipe } from '../../../../shared/utils/brl.pipe';
 import { ORDER_STATUS_LABELS, ORDER_STATUS_FLOW } from '../../../../shared/utils/order-status.util';
 
@@ -24,28 +23,34 @@ import { ORDER_STATUS_LABELS, ORDER_STATUS_FLOW } from '../../../../shared/utils
     CommonModule, RouterLink, FormsModule,
     MatCardModule, MatButtonModule, MatIconModule,
     MatListModule, MatChipsModule, MatDividerModule,
-    MatSelectModule, MatSnackBarModule, LoadingComponent, BrlPipe
+    MatSelectModule, MatSnackBarModule, BrlPipe
   ],
   templateUrl: './order-detail.component.html',
   styleUrl: './order-detail.component.scss'
 })
 export class OrderDetailComponent implements OnInit {
   order?: Order;
-  loading = true;
+  notFound = false;
   newStatus?: OrderStatus;
   updatingStatus = false;
   readonly statusLabels = ORDER_STATUS_LABELS;
   readonly statusFlow = ORDER_STATUS_FLOW;
 
   constructor(
-    private route: ActivatedRoute,
+    private router: Router,
     private orderService: OrderService,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
-    const id = +this.route.snapshot.paramMap.get('id')!;
-    this.loadOrder(id);
+    const nav = this.router.getCurrentNavigation();
+    const order = nav?.extras?.state?.['order'] as Order | undefined;
+    if (order) {
+      this.order = order;
+    } else {
+      // Accessed directly without navigation state — no endpoint to fetch single order
+      this.notFound = true;
+    }
   }
 
   get availableStatuses(): OrderStatus[] {
@@ -72,13 +77,6 @@ export class OrderDetailComponent implements OnInit {
       error: () => {
         this.updatingStatus = false;
       }
-    });
-  }
-
-  private loadOrder(id: number): void {
-    this.orderService.getById(id).subscribe(order => {
-      this.order = order;
-      this.loading = false;
     });
   }
 }

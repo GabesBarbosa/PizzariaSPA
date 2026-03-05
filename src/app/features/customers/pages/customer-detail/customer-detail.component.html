@@ -3,12 +3,7 @@
 <div *ngIf="!loading && customer">
   <div class="page-header">
     <h1>{{ customer.name }}</h1>
-    <div>
-      <a mat-button routerLink="/clientes">Voltar</a>
-      <a mat-flat-button color="primary" [routerLink]="['/clientes', customer.id, 'editar']">
-        <mat-icon>edit</mat-icon> Editar
-      </a>
-    </div>
+    <a mat-button routerLink="/clientes">Voltar</a>
   </div>
 
   <div class="detail-grid">
@@ -22,11 +17,6 @@
             <mat-icon matListItemIcon>phone</mat-icon>
             <span matListItemTitle>{{ customer.phone }}</span>
             <span matListItemLine>Telefone</span>
-          </mat-list-item>
-          <mat-list-item *ngIf="customer.email">
-            <mat-icon matListItemIcon>email</mat-icon>
-            <span matListItemTitle>{{ customer.email }}</span>
-            <span matListItemLine>Email</span>
           </mat-list-item>
           <mat-list-item *ngIf="customer.address">
             <mat-icon matListItemIcon>location_on</mat-icon>
@@ -44,8 +34,8 @@
       <mat-card-content>
         <p *ngIf="orders.length === 0" class="empty-text">Nenhum pedido encontrado.</p>
         <mat-list *ngIf="orders.length > 0">
-          <mat-list-item *ngFor="let order of orders" [routerLink]="['/pedidos', order.id]" class="order-item">
-            <span matListItemTitle>Pedido #{{ order.id }} - {{ order.total | brl }}</span>
+          <mat-list-item *ngFor="let order of orders" (click)="viewOrder(order)" class="order-item">
+            <span matListItemTitle>Pedido #{{ order.id | slice:0:8 }}... - {{ order.total | brl }}</span>
             <span matListItemLine>
               {{ getStatusLabel(order.status) }} · {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}
             </span>

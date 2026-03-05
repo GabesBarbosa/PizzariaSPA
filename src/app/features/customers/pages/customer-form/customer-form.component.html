@@ -1,5 +1,5 @@
 <div class="page-header">
-  <h1>{{ isEditing ? 'Editar Cliente' : 'Novo Cliente' }}</h1>
+  <h1>Novo Cliente</h1>
 </div>
 
 <mat-card>
@@ -16,12 +16,6 @@
         <mat-label>Telefone</mat-label>
         <input matInput formControlName="phone" placeholder="(00) 00000-0000">
         <mat-error *ngIf="form.get('phone')?.hasError('required')">Telefone é obrigatório</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Email</mat-label>
-        <input matInput formControlName="email" placeholder="email@exemplo.com" type="email">
-        <mat-error *ngIf="form.get('email')?.hasError('email')">Email inválido</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">

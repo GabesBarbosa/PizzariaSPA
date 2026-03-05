@@ -1,6 +1,13 @@
-<app-loading *ngIf="loading"></app-loading>
+<div *ngIf="notFound" class="not-found">
+  <mat-card>
+    <mat-card-content>
+      <p>Pedido não encontrado. Acesse os detalhes do pedido a partir da lista de pedidos do cliente.</p>
+      <a mat-flat-button color="primary" routerLink="/pedidos">Ir para Pedidos</a>
+    </mat-card-content>
+  </mat-card>
+</div>
 
-<div *ngIf="!loading && order">
+<div *ngIf="order">
   <div class="page-header">
     <h1>Pedido #{{ order.id }}</h1>
     <a mat-button routerLink="/pedidos">Voltar</a>
@@ -38,7 +45,7 @@
             {{ getStatusLabel(order.status) }}
           </mat-chip>
 
-          <div class="status-change" *ngIf="order.status !== 'entregue'">
+          <div class="status-change" *ngIf="order.status !== 'DELIVERED'">
             <mat-form-field appearance="outline">
               <mat-label>Alterar Status</mat-label>
               <mat-select [(value)]="newStatus">

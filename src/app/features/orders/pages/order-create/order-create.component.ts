@@ -45,7 +45,7 @@ export class OrderCreateComponent implements OnInit {
   filteredCustomers: Customer[] = [];
   selectedCustomer?: Customer;
   products: Product[] = [];
-  selectedProductId?: number;
+  selectedProductId?: string;
   selectedQuantity = 1;
   cart: CartItem[] = [];
   cartColumns = ['product', 'unitPrice', 'quantity', 'subtotal', 'actions'];
@@ -78,8 +78,13 @@ export class OrderCreateComponent implements OnInit {
       this.filteredCustomers = customers;
     });
 
-    this.productService.getAll().subscribe(products => {
-      this.products = products;
+    this.productService.getAll().subscribe({
+      next: (products) => {
+        this.products = products;
+      },
+      error: () => {
+        this.products = [];
+      }
     });
   }
 
@@ -137,8 +142,8 @@ export class OrderCreateComponent implements OnInit {
 
     this.orderService.create(order).subscribe({
       next: (created) => {
-        this.snackBar.open(`Pedido #${created.id} criado com sucesso!`, 'OK', { duration: 3000 });
-        this.router.navigate(['/pedidos', created.id]);
+        this.snackBar.open(`Pedido criado com sucesso!`, 'OK', { duration: 3000 });
+        this.router.navigate(['/pedidos', created.id], { state: { order: created } });
       },
       error: () => {
         this.submitting = false;

@@ -1,11 +1,10 @@
 export interface Product {
-  id: number;
+  id: string;
   name: string;
   description?: string;
   price: number;
-  category: 'pizza' | 'bebida' | 'outro';
+  category: string;
   imageUrl?: string;
   active?: boolean;
   createdAt?: string;
-  updatedAt?: string;
 }

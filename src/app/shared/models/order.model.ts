@@ -1,11 +1,11 @@
 import { Customer } from './customer.model';
 import { Product } from './product.model';
 
-export type OrderStatus = 'recebido' | 'preparando' | 'saiu_para_entrega' | 'entregue';
+export type OrderStatus = 'RECEIVED' | 'PREPARING' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
 
 export interface OrderItem {
-  id?: number;
-  productId: number;
+  id?: string;
+  productId: string;
   product?: Product;
   quantity: number;
   unitPrice: number;
@@ -13,19 +13,18 @@ export interface OrderItem {
 }
 
 export interface Order {
-  id: number;
-  customerId: number;
+  id: string;
+  customerId: string;
   customer?: Customer;
   items: OrderItem[];
   total: number;
   status: OrderStatus;
   notes?: string;
   createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface CreateOrderDto {
-  customerId: number;
-  items: { productId: number; quantity: number }[];
+  customerId: string;
+  items: { productId: string; quantity: number }[];
   notes?: string;
 }
