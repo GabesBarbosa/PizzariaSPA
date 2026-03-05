@@ -1,0 +1,62 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.selected-customer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #e8f5e9;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.product-selector {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.product-field {
+  flex: 1;
+}
+
+.qty-field {
+  width: 100px;
+}
+
+.cart-table {
+  margin-top: 16px;
+}
+
+.order-total {
+  text-align: right;
+  font-size: 1.2rem;
+  padding: 16px 0;
+}
+
+.total-confirm {
+  font-size: 1.4rem;
+}
+
+.confirmation-section {
+  padding: 16px 0;
+}
+
+.confirmation-item {
+  padding: 4px 0;
+}
+
+h3 {
+  margin: 0 0 8px 0;
+  color: rgba(0, 0, 0, 0.6);
+}

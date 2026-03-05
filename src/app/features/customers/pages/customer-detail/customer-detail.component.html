@@ -1,0 +1,57 @@
+<app-loading *ngIf="loading"></app-loading>
+
+<div *ngIf="!loading && customer">
+  <div class="page-header">
+    <h1>{{ customer.name }}</h1>
+    <div>
+      <a mat-button routerLink="/clientes">Voltar</a>
+      <a mat-flat-button color="primary" [routerLink]="['/clientes', customer.id, 'editar']">
+        <mat-icon>edit</mat-icon> Editar
+      </a>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Dados do Cliente</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-list>
+          <mat-list-item>
+            <mat-icon matListItemIcon>phone</mat-icon>
+            <span matListItemTitle>{{ customer.phone }}</span>
+            <span matListItemLine>Telefone</span>
+          </mat-list-item>
+          <mat-list-item *ngIf="customer.email">
+            <mat-icon matListItemIcon>email</mat-icon>
+            <span matListItemTitle>{{ customer.email }}</span>
+            <span matListItemLine>Email</span>
+          </mat-list-item>
+          <mat-list-item *ngIf="customer.address">
+            <mat-icon matListItemIcon>location_on</mat-icon>
+            <span matListItemTitle>{{ customer.address }}</span>
+            <span matListItemLine>Endereço</span>
+          </mat-list-item>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Histórico de Pedidos</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p *ngIf="orders.length === 0" class="empty-text">Nenhum pedido encontrado.</p>
+        <mat-list *ngIf="orders.length > 0">
+          <mat-list-item *ngFor="let order of orders" [routerLink]="['/pedidos', order.id]" class="order-item">
+            <span matListItemTitle>Pedido #{{ order.id }} - {{ order.total | brl }}</span>
+            <span matListItemLine>
+              {{ getStatusLabel(order.status) }} · {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}
+            </span>
+          </mat-list-item>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

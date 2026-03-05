@@ -1,0 +1,40 @@
+<div class="page-header">
+  <h1>{{ isEditing ? 'Editar Cliente' : 'Novo Cliente' }}</h1>
+</div>
+
+<mat-card>
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nome</mat-label>
+        <input matInput formControlName="name" placeholder="Nome completo">
+        <mat-error *ngIf="form.get('name')?.hasError('required')">Nome é obrigatório</mat-error>
+        <mat-error *ngIf="form.get('name')?.hasError('minlength')">Mínimo de 3 caracteres</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Telefone</mat-label>
+        <input matInput formControlName="phone" placeholder="(00) 00000-0000">
+        <mat-error *ngIf="form.get('phone')?.hasError('required')">Telefone é obrigatório</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" placeholder="email@exemplo.com" type="email">
+        <mat-error *ngIf="form.get('email')?.hasError('email')">Email inválido</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Endereço</mat-label>
+        <textarea matInput formControlName="address" rows="3" placeholder="Endereço completo"></textarea>
+      </mat-form-field>
+
+      <div class="form-actions">
+        <a mat-button routerLink="/clientes">Cancelar</a>
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || saving">
+          {{ saving ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

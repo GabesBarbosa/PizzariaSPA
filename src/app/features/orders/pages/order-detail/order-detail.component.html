@@ -1,0 +1,79 @@
+<app-loading *ngIf="loading"></app-loading>
+
+<div *ngIf="!loading && order">
+  <div class="page-header">
+    <h1>Pedido #{{ order.id }}</h1>
+    <a mat-button routerLink="/pedidos">Voltar</a>
+  </div>
+
+  <div class="detail-grid">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Informações</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-list>
+          <mat-list-item>
+            <mat-icon matListItemIcon>person</mat-icon>
+            <span matListItemTitle>{{ order.customer?.name || 'N/A' }}</span>
+            <span matListItemLine>Cliente</span>
+          </mat-list-item>
+          <mat-list-item>
+            <mat-icon matListItemIcon>calendar_today</mat-icon>
+            <span matListItemTitle>{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span matListItemLine>Data</span>
+          </mat-list-item>
+          <mat-list-item>
+            <mat-icon matListItemIcon>attach_money</mat-icon>
+            <span matListItemTitle>{{ order.total | brl }}</span>
+            <span matListItemLine>Total</span>
+          </mat-list-item>
+        </mat-list>
+
+        <mat-divider></mat-divider>
+
+        <div class="status-section">
+          <h3>Status</h3>
+          <mat-chip [class]="'status-' + order.status">
+            {{ getStatusLabel(order.status) }}
+          </mat-chip>
+
+          <div class="status-change" *ngIf="order.status !== 'entregue'">
+            <mat-form-field appearance="outline">
+              <mat-label>Alterar Status</mat-label>
+              <mat-select [(value)]="newStatus">
+                <mat-option *ngFor="let s of availableStatuses" [value]="s">
+                  {{ getStatusLabel(s) }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <button mat-flat-button color="primary" (click)="updateStatus()"
+                    [disabled]="!newStatus || updatingStatus">
+              Atualizar
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Itens do Pedido</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-list>
+          <mat-list-item *ngFor="let item of order.items">
+            <span matListItemTitle>{{ item.product?.name || 'Produto #' + item.productId }}</span>
+            <span matListItemLine>
+              {{ item.quantity }}x {{ item.unitPrice | brl }} = {{ item.subtotal | brl }}
+            </span>
+          </mat-list-item>
+        </mat-list>
+        <mat-divider></mat-divider>
+        <div class="order-total">
+          <strong>Total: {{ order.total | brl }}</strong>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

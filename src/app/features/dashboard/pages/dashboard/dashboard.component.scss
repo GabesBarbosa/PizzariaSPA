@@ -1,0 +1,80 @@
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.metric {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.metric mat-icon {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+}
+
+.metric-value {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.metric-label {
+  color: rgba(0, 0, 0, 0.54);
+  font-size: 0.9rem;
+}
+
+.section-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.empty-text {
+  padding: 16px;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.status-chip {
+  font-size: 0.75rem;
+}
+
+.status-recebido {
+  background-color: #e3f2fd !important;
+}
+
+.status-preparando {
+  background-color: #fff3e0 !important;
+}
+
+.status-saiu_para_entrega {
+  background-color: #e8f5e9 !important;
+}
+
+.status-entregue {
+  background-color: #e0f2f1 !important;
+}
+
+@media (max-width: 1024px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-grid {
+    grid-template-columns: 1fr;
+  }
+}
