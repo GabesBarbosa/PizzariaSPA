@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,12 +14,9 @@ import { CustomerService } from '../../../../core/services/customer.service';
 function brPhoneValidator(control: AbstractControl): ValidationErrors | null {
   if (!control.value) return null;
   const digits = control.value.replace(/\D/g, '');
-  // Celular: 2 DDD + 9 dígitos = 11 | Fixo: 2 DDD + 8 dígitos = 10
   if (digits.length < 10 || digits.length > 11) return { invalidPhone: true };
-  // DDD válido: 11-99
   const ddd = parseInt(digits.substring(0, 2), 10);
   if (ddd < 11 || ddd > 99) return { invalidPhone: true };
-  // Celular deve começar com 9
   if (digits.length === 11 && digits[2] !== '9') return { invalidPhone: true };
   return null;
 }
@@ -38,11 +35,14 @@ function brPhoneValidator(control: AbstractControl): ValidationErrors | null {
 export class CustomerFormComponent implements OnInit {
   form!: FormGroup;
   saving = false;
+  isEditMode = false;
+  customerId: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private customerService: CustomerService,
     private router: Router,
+    private route: ActivatedRoute,
     private snackBar: MatSnackBar
   ) {}
 
@@ -52,6 +52,24 @@ export class CustomerFormComponent implements OnInit {
       phone: ['', [Validators.required, brPhoneValidator]],
       address: ['']
     });
+
+    this.customerId = this.route.snapshot.paramMap.get('id');
+    if (this.customerId) {
+      this.isEditMode = true;
+      this.customerService.getById(this.customerId).subscribe({
+        next: (customer) => {
+          this.form.patchValue({
+            name: customer.name,
+            phone: customer.phone,
+            address: customer.address || ''
+          });
+        },
+        error: () => {
+          this.snackBar.open('Erro ao carregar cliente', 'OK', { duration: 3000 });
+          this.router.navigate(['/clientes']);
+        }
+      });
+    }
   }
 
   formatPhone(): void {
@@ -69,9 +87,16 @@ export class CustomerFormComponent implements OnInit {
     if (this.form.invalid) return;
     this.saving = true;
 
-    this.customerService.create(this.form.value).subscribe({
+    const obs = this.isEditMode
+      ? this.customerService.update(this.customerId!, this.form.value)
+      : this.customerService.create(this.form.value);
+
+    obs.subscribe({
       next: () => {
-        this.snackBar.open('Cliente cadastrado!', 'OK', { duration: 3000 });
+        this.snackBar.open(
+          this.isEditMode ? 'Cliente atualizado!' : 'Cliente cadastrado!',
+          'OK', { duration: 3000 }
+        );
         this.router.navigate(['/clientes']);
       },
       error: () => {

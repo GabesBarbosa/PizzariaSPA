@@ -10,5 +10,10 @@ export const PRODUCT_ROUTES: Routes = [
     path: 'novo',
     loadComponent: () =>
       import('./pages/product-form/product-form.component').then(m => m.ProductFormComponent)
+  },
+  {
+    path: ':id/editar',
+    loadComponent: () =>
+      import('./pages/product-form/product-form.component').then(m => m.ProductFormComponent)
   }
 ];

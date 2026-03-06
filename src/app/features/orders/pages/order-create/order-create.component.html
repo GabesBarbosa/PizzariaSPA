@@ -36,6 +36,57 @@
               <span *ngIf="selectedCustomer.address"> · {{ selectedCustomer.address }}</span>
             </div>
           </div>
+
+          <!-- No results + register prompt -->
+          <div *ngIf="!selectedCustomer && searchPerformed && filteredCustomers.length === 0 && !showNewCustomerForm"
+               class="no-results">
+            <p>Nenhum cliente encontrado.</p>
+            <button mat-stroked-button color="primary" (click)="toggleNewCustomerForm()">
+              <mat-icon>person_add</mat-icon> Cadastrar novo cliente
+            </button>
+          </div>
+
+          <!-- Quick add button (always visible when not in new form) -->
+          <div *ngIf="!selectedCustomer && !showNewCustomerForm && !(searchPerformed && filteredCustomers.length === 0)"
+               class="quick-add">
+            <button mat-button color="primary" (click)="toggleNewCustomerForm()">
+              <mat-icon>person_add</mat-icon> Cadastrar novo cliente
+            </button>
+          </div>
+
+          <!-- Inline new customer form -->
+          <div *ngIf="showNewCustomerForm" class="new-customer-form">
+            <h3>Novo Cliente</h3>
+            <form [formGroup]="newCustomerForm">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nome</mat-label>
+                <input matInput formControlName="name" placeholder="Nome completo">
+                <mat-error *ngIf="newCustomerForm.get('name')?.hasError('required')">Nome é obrigatório</mat-error>
+                <mat-error *ngIf="newCustomerForm.get('name')?.hasError('minlength')">Mínimo 3 caracteres</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Telefone</mat-label>
+                <input matInput formControlName="phone" placeholder="(11) 99999-9999"
+                       (input)="formatNewCustomerPhone()" maxlength="16">
+                <mat-error *ngIf="newCustomerForm.get('phone')?.hasError('required')">Telefone é obrigatório</mat-error>
+                <mat-error *ngIf="newCustomerForm.get('phone')?.hasError('invalidPhone')">Telefone inválido</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Endereço</mat-label>
+                <input matInput formControlName="address" placeholder="Endereço completo (opcional)">
+              </mat-form-field>
+
+              <div class="new-customer-actions">
+                <button mat-button (click)="toggleNewCustomerForm()">Cancelar</button>
+                <button mat-flat-button color="primary" (click)="saveNewCustomer()"
+                        [disabled]="newCustomerForm.invalid || savingCustomer">
+                  {{ savingCustomer ? 'Salvando...' : 'Cadastrar e Selecionar' }}
+                </button>
+              </div>
+            </form>
+          </div>
         </mat-card-content>
         <mat-card-actions align="end">
           <button mat-flat-button color="primary" matStepperNext
@@ -56,12 +107,21 @@
       <mat-card-content>
         <div class="product-selector">
           <mat-form-field appearance="outline" class="product-field">
-            <mat-label>Produto</mat-label>
-            <mat-select [(value)]="selectedProductId">
-              <mat-option *ngFor="let p of products" [value]="p.id">
-                {{ p.name }} ({{ p.category }}) - {{ p.price | brl }}
+            <mat-label>Buscar produto / sabor</mat-label>
+            <input matInput
+                   [(ngModel)]="productSearchText"
+                   [ngModelOptions]="{standalone: true}"
+                   [matAutocomplete]="autoProduct"
+                   (input)="filterProducts()"
+                   placeholder="Digite o nome ou categoria">
+            <mat-icon matSuffix>search</mat-icon>
+            <mat-autocomplete #autoProduct="matAutocomplete"
+                              [displayWith]="displayProduct"
+                              (optionSelected)="selectProduct($event.option.value)">
+              <mat-option *ngFor="let p of filteredProducts" [value]="p">
+                {{ p.name }} <span class="product-category">({{ p.category }})</span> - {{ p.price | brl }}
               </mat-option>
-            </mat-select>
+            </mat-autocomplete>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="qty-field">
@@ -70,7 +130,7 @@
           </mat-form-field>
 
           <button mat-flat-button color="accent" (click)="addToCart()"
-                  [disabled]="!selectedProductId || selectedQuantity < 1">
+                  [disabled]="!selectedProduct || selectedQuantity < 1">
             <mat-icon>add_shopping_cart</mat-icon> Adicionar
           </button>
         </div>
@@ -135,7 +195,51 @@
     </mat-card>
   </mat-step>
 
-  <!-- Step 3: Confirmar Pedido -->
+  <!-- Step 3: Detalhes da Entrega -->
+  <mat-step label="Entrega">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Detalhes da Entrega e Pagamento</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Forma de Pagamento</mat-label>
+          <mat-select [(value)]="paymentMethod">
+            <mat-option value="">-- Selecionar --</mat-option>
+            <mat-option *ngFor="let pm of paymentMethods" [value]="pm.value">
+              {{ pm.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Endereço de Entrega</mat-label>
+          <textarea matInput [(ngModel)]="deliveryAddress" [ngModelOptions]="{standalone: true}"
+                    rows="2" placeholder="Endereço para entrega"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Taxa de Entrega (R$)</mat-label>
+          <input matInput currencyMask [(ngModel)]="deliveryFee" [ngModelOptions]="{standalone: true}"
+                 placeholder="R$ 0,00">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Observações</mat-label>
+          <textarea matInput [(ngModel)]="orderNotes" [ngModelOptions]="{standalone: true}"
+                    rows="3" placeholder="Observações do pedido (opcional)"></textarea>
+        </mat-form-field>
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <button mat-button matStepperPrevious>Voltar</button>
+        <button mat-flat-button color="primary" matStepperNext>
+          Próximo
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </mat-step>
+
+  <!-- Step 4: Confirmar Pedido -->
   <mat-step label="Confirmação">
     <mat-card>
       <mat-card-header>
@@ -160,16 +264,36 @@
 
         <mat-divider></mat-divider>
 
-        <div class="confirmation-section">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Observações</mat-label>
-            <textarea matInput [(ngModel)]="orderNotes" [ngModelOptions]="{standalone: true}"
-                      rows="3" placeholder="Observações do pedido (opcional)"></textarea>
-          </mat-form-field>
+        <div class="confirmation-section" *ngIf="deliveryAddress">
+          <h3>Endereço de Entrega</h3>
+          <p>{{ deliveryAddress }}</p>
         </div>
 
-        <div class="order-total total-confirm">
-          <strong>Total: {{ orderTotal | brl }}</strong>
+        <div class="confirmation-section" *ngIf="paymentMethod">
+          <h3>Forma de Pagamento</h3>
+          <p>{{ getPaymentLabel(paymentMethod) }}</p>
+        </div>
+
+        <div class="confirmation-section" *ngIf="orderNotes">
+          <h3>Observações</h3>
+          <p>{{ orderNotes }}</p>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="order-totals">
+          <div class="total-line">
+            <span>Subtotal:</span>
+            <span>{{ subtotal | brl }}</span>
+          </div>
+          <div class="total-line" *ngIf="deliveryFee">
+            <span>Taxa de Entrega:</span>
+            <span>{{ deliveryFee | brl }}</span>
+          </div>
+          <div class="total-line total-grand">
+            <strong>Total:</strong>
+            <strong>{{ orderTotal | brl }}</strong>
+          </div>
         </div>
       </mat-card-content>
       <mat-card-actions align="end">

@@ -26,6 +26,10 @@ export class CustomerService {
     return this.http.post<Customer>(this.baseUrl, customer);
   }
 
+  update(id: string, customer: Partial<Customer>): Observable<Customer> {
+    return this.http.put<Customer>(`${this.baseUrl}/${id}`, customer);
+  }
+
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }

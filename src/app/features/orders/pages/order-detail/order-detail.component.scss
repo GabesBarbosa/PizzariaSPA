@@ -5,6 +5,12 @@
   margin-bottom: 16px;
 }
 
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -13,9 +13,14 @@
 <div *ngIf="!loading && order">
   <div class="page-header">
     <h1>Pedido #{{ order.id | slice:0:8 }}...</h1>
-    <a mat-button routerLink="/pedidos">
-      <mat-icon>arrow_back</mat-icon> Voltar
-    </a>
+    <div class="header-actions">
+      <button mat-flat-button color="accent" (click)="printOrder()">
+        <mat-icon>print</mat-icon> Imprimir
+      </button>
+      <a mat-button routerLink="/pedidos">
+        <mat-icon>arrow_back</mat-icon> Voltar
+      </a>
+    </div>
   </div>
 
   <div class="detail-grid">
@@ -40,6 +45,26 @@
             <mat-icon matListItemIcon>attach_money</mat-icon>
             <span matListItemTitle>{{ order.total | brl }}</span>
             <span matListItemLine>Total</span>
+          </mat-list-item>
+          <mat-list-item *ngIf="order.paymentMethod">
+            <mat-icon matListItemIcon>payment</mat-icon>
+            <span matListItemTitle>{{ getPaymentLabel(order.paymentMethod) }}</span>
+            <span matListItemLine>Forma de Pagamento</span>
+          </mat-list-item>
+          <mat-list-item *ngIf="order.deliveryAddress">
+            <mat-icon matListItemIcon>location_on</mat-icon>
+            <span matListItemTitle>{{ order.deliveryAddress }}</span>
+            <span matListItemLine>Endereço de Entrega</span>
+          </mat-list-item>
+          <mat-list-item *ngIf="order.deliveryFee">
+            <mat-icon matListItemIcon>delivery_dining</mat-icon>
+            <span matListItemTitle>{{ order.deliveryFee | brl }}</span>
+            <span matListItemLine>Taxa de Entrega</span>
+          </mat-list-item>
+          <mat-list-item *ngIf="order.notes">
+            <mat-icon matListItemIcon>notes</mat-icon>
+            <span matListItemTitle>{{ order.notes }}</span>
+            <span matListItemLine>Observações</span>
           </mat-list-item>
         </mat-list>
 
