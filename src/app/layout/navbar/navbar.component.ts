@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,8 +9,8 @@ import { MatButtonModule } from '@angular/material/button';
   imports: [MatToolbarModule, MatIconModule, MatButtonModule],
   template: `
     <mat-toolbar color="primary" class="navbar">
-      <button mat-icon-button (click)="toggleSidebar()">
-        <mat-icon>menu</mat-icon>
+      <button mat-icon-button (click)="menuToggle.emit()" class="menu-btn">
+        <mat-icon class="menu-icon" [class.open]="sidenavOpen">menu</mat-icon>
       </button>
       <span class="brand">🍕 Pizzaria</span>
       <span class="spacer"></span>
@@ -32,12 +32,21 @@ import { MatButtonModule } from '@angular/material/button';
     .spacer {
       flex: 1 1 auto;
     }
+    .menu-btn {
+      transition: transform 0.2s ease;
+    }
+    .menu-btn:active {
+      transform: scale(0.9);
+    }
+    .menu-icon {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .menu-icon.open {
+      transform: rotate(180deg);
+    }
   `]
 })
 export class NavbarComponent {
-  onToggle?: () => void;
-
-  toggleSidebar(): void {
-    this.onToggle?.();
-  }
+  @Input() sidenavOpen = true;
+  @Output() menuToggle = new EventEmitter<void>();
 }
