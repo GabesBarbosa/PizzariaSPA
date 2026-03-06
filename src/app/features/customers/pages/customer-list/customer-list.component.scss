@@ -5,8 +5,14 @@
   margin-bottom: 16px;
 }
 
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .search-field {
-  width: 100%;
+  flex: 1;
 }
 
 .hint-text {

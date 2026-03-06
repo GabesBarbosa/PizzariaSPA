@@ -7,16 +7,31 @@
 
 <mat-card>
   <mat-card-content>
-    <mat-form-field appearance="outline" class="search-field">
-      <mat-label>Buscar por nome ou telefone</mat-label>
-      <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onSearch($event)" placeholder="Digite para buscar (mínimo 2 caracteres)...">
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+    <div class="search-row">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>{{ searchMode ? 'Buscar por nome ou telefone (mín. 2 caracteres)' : 'Filtrar clientes' }}</mat-label>
+        <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onSearch($event)"
+               [placeholder]="searchMode ? 'Digite para buscar...' : 'Filtrar clientes...'">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-slide-toggle [checked]="searchMode" (change)="toggleSearchMode()" matTooltip="Modo busca: carrega só ao pesquisar">
+        Somente busca
+      </mat-slide-toggle>
+    </div>
 
     <app-loading *ngIf="loading"></app-loading>
 
-    <p *ngIf="!loading && customers.length === 0 && searchQuery.length < 2" class="hint-text">
+    <p *ngIf="!loading && customers.length === 0 && !searchMode" class="hint-text">
+      Nenhum cliente encontrado.
+    </p>
+
+    <p *ngIf="!loading && customers.length === 0 && searchMode && searchQuery.length < 2" class="hint-text">
       Digite pelo menos 2 caracteres para buscar clientes.
+    </p>
+
+    <p *ngIf="!loading && customers.length === 0 && searchMode && searchQuery.length >= 2" class="hint-text">
+      Nenhum cliente encontrado.
     </p>
 
     <table mat-table [dataSource]="paginatedCustomers" *ngIf="!loading && customers.length > 0" class="full-width">

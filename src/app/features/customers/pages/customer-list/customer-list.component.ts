@@ -12,6 +12,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 
 import { Customer } from '../../../../shared/models';
@@ -27,17 +28,19 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
     MatTableModule, MatInputModule, MatFormFieldModule,
     MatButtonModule, MatIconModule, MatPaginatorModule,
     MatCardModule, MatTooltipModule, MatSnackBarModule,
-    MatDialogModule, LoadingComponent
+    MatDialogModule, MatSlideToggleModule, LoadingComponent
   ],
   templateUrl: './customer-list.component.html',
   styleUrl: './customer-list.component.scss'
 })
 export class CustomerListComponent implements OnInit {
+  allCustomers: Customer[] = [];
   customers: Customer[] = [];
   paginatedCustomers: Customer[] = [];
   displayedColumns = ['name', 'phone', 'actions'];
   loading = false;
   searchQuery = '';
+  searchMode = false;
   pageSize = 10;
   pageIndex = 0;
 
@@ -50,20 +53,73 @@ export class CustomerListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadAll();
+
     this.searchSubject.pipe(
       debounceTime(300),
-      distinctUntilChanged(),
-      switchMap(query => {
-        if (query.length < 2) return of([]);
-        this.loading = true;
-        return this.customerService.search(query);
-      })
-    ).subscribe(customers => {
-      this.customers = customers;
+      distinctUntilChanged()
+    ).subscribe(query => {
+      if (this.searchMode) {
+        if (query.length >= 2) {
+          this.loading = true;
+          this.customerService.search(query).subscribe({
+            next: (customers) => {
+              this.customers = customers;
+              this.pageIndex = 0;
+              this.updatePagination();
+              this.loading = false;
+            },
+            error: () => { this.loading = false; }
+          });
+        } else {
+          this.customers = [];
+          this.paginatedCustomers = [];
+        }
+      } else {
+        this.filterCustomers(query);
+      }
+    });
+  }
+
+  toggleSearchMode(): void {
+    this.searchMode = !this.searchMode;
+    this.searchQuery = '';
+    if (this.searchMode) {
+      this.customers = [];
+      this.paginatedCustomers = [];
+    } else {
+      this.customers = this.allCustomers;
       this.pageIndex = 0;
       this.updatePagination();
-      this.loading = false;
+    }
+  }
+
+  loadAll(): void {
+    this.loading = true;
+    this.customerService.getAll().subscribe({
+      next: (customers) => {
+        this.allCustomers = customers;
+        this.filterCustomers(this.searchQuery);
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      }
     });
+  }
+
+  private filterCustomers(query: string): void {
+    const q = query.toLowerCase().trim();
+    if (!q) {
+      this.customers = this.allCustomers;
+    } else {
+      this.customers = this.allCustomers.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        c.phone.includes(q)
+      );
+    }
+    this.pageIndex = 0;
+    this.updatePagination();
   }
 
   onSearch(query: string): void {
@@ -92,8 +148,8 @@ export class CustomerListComponent implements OnInit {
       if (!confirmed) return;
       this.customerService.delete(customer.id).subscribe({
         next: () => {
-          this.customers = this.customers.filter(c => c.id !== customer.id);
-          this.updatePagination();
+          this.allCustomers = this.allCustomers.filter(c => c.id !== customer.id);
+          this.filterCustomers(this.searchQuery);
           this.snackBar.open('Cliente excluído', 'OK', { duration: 2500 });
         },
         error: () => {
