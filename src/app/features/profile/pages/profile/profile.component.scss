@@ -1,0 +1,36 @@
+.profile-page {
+  width: 100%;
+  max-width: 600px;
+}
+
+h1 {
+  margin-bottom: 24px;
+}
+
+.section-card {
+  margin-bottom: 24px;
+}
+
+.avatar-icon {
+  font-size: 40px !important;
+  width: 40px !important;
+  height: 40px !important;
+  color: #1976d2;
+  background: none !important;
+
+  &.lock-icon {
+    color: #f57c00;
+  }
+}
+
+.form-row {
+  margin-bottom: 4px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-card-actions {
+  padding: 0 16px 16px !important;
+}

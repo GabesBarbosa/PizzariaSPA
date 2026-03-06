@@ -1,0 +1,84 @@
+<div class="profile-page">
+  <h1>Meu Perfil</h1>
+
+  <!-- Profile Info Card -->
+  <mat-card class="section-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="avatar-icon">account_circle</mat-icon>
+      <mat-card-title>Informações Pessoais</mat-card-title>
+      <mat-card-subtitle *ngIf="user">{{ user.tenantName }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome</mat-label>
+          <input matInput [(ngModel)]="name" placeholder="Seu nome">
+          <mat-icon matPrefix>person</mat-icon>
+        </mat-form-field>
+      </div>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>E-mail</mat-label>
+          <input matInput type="email" [(ngModel)]="email" placeholder="seu@email.com">
+          <mat-icon matPrefix>email</mat-icon>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-raised-button color="primary" (click)="saveProfile()"
+              [disabled]="saving || !name || !email">
+        <mat-icon>save</mat-icon>
+        {{ saving ? 'Salvando...' : 'Salvar' }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Change Password Card -->
+  <mat-card class="section-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="avatar-icon lock-icon">lock</mat-icon>
+      <mat-card-title>Alterar Senha</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Senha Atual</mat-label>
+          <input matInput [type]="hideCurrentPassword ? 'password' : 'text'"
+                 [(ngModel)]="currentPassword">
+          <mat-icon matPrefix>vpn_key</mat-icon>
+          <button mat-icon-button matSuffix type="button"
+                  (click)="hideCurrentPassword = !hideCurrentPassword">
+            <mat-icon>{{ hideCurrentPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nova Senha</mat-label>
+          <input matInput [type]="hideNewPassword ? 'password' : 'text'"
+                 [(ngModel)]="newPassword">
+          <mat-icon matPrefix>lock_outline</mat-icon>
+          <button mat-icon-button matSuffix type="button"
+                  (click)="hideNewPassword = !hideNewPassword">
+            <mat-icon>{{ hideNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirmar Nova Senha</mat-label>
+          <input matInput [type]="hideNewPassword ? 'password' : 'text'"
+                 [(ngModel)]="confirmPassword">
+          <mat-icon matPrefix>lock_outline</mat-icon>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-raised-button color="warn" (click)="changePassword()"
+              [disabled]="savingPassword || !currentPassword || !newPassword || !confirmPassword">
+        <mat-icon>vpn_key</mat-icon>
+        {{ savingPassword ? 'Alterando...' : 'Alterar Senha' }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

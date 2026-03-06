@@ -1,0 +1,55 @@
+<div class="login-page">
+  <div class="login-container">
+    <div class="logo-section">
+      <mat-icon class="logo-icon">local_pizza</mat-icon>
+      <h1>Pizzatec</h1>
+      <p>Sistema de gestão para pizzarias</p>
+    </div>
+
+    <mat-card>
+      <mat-tab-group>
+        <!-- Login Tab -->
+        <mat-tab label="Entrar">
+          <div class="tab-content">
+            <form (ngSubmit)="onLogin()">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>E-mail</mat-label>
+                <input matInput type="email" [(ngModel)]="loginEmail" name="email"
+                       placeholder="seu@email.com" required>
+                <mat-icon matPrefix>email</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Senha</mat-label>
+                <input matInput [type]="hideLoginPassword ? 'password' : 'text'"
+                       [(ngModel)]="loginPassword" name="password" required>
+                <mat-icon matPrefix>lock</mat-icon>
+                <button mat-icon-button matSuffix type="button"
+                        (click)="hideLoginPassword = !hideLoginPassword">
+                  <mat-icon>{{ hideLoginPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+              </mat-form-field>
+
+              <button mat-raised-button color="primary" type="submit" class="full-width submit-btn"
+                      [disabled]="loginLoading || !loginEmail || !loginPassword">
+                <mat-spinner diameter="20" *ngIf="loginLoading"></mat-spinner>
+                <span *ngIf="!loginLoading">Entrar</span>
+              </button>
+            </form>
+          </div>
+        </mat-tab>
+
+        <!-- Register Tab -->
+        <mat-tab label="Cadastrar Pizzaria">
+          <div class="tab-content disabled-tab">
+            <div class="disabled-overlay">
+              <mat-icon>lock</mat-icon>
+              <p>Funcionalidade disponível em breve.</p>
+              <p>Entre em contato com o gestor da aplicação.</p>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card>
+  </div>
+</div>
