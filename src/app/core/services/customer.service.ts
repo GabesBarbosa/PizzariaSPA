@@ -25,4 +25,8 @@ export class CustomerService {
   create(customer: Partial<Customer>): Observable<Customer> {
     return this.http.post<Customer>(this.baseUrl, customer);
   }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

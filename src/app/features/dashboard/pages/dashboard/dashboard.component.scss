@@ -1,5 +1,5 @@
 .dashboard {
-  max-width: 1200px;
+  width: 100%;
 }
 
 h1 {
@@ -15,7 +15,7 @@ h2 {
 // KPI Cards
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
 }
 
@@ -56,7 +56,7 @@ h2 {
 // Quick Actions
 .actions-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
 }
 
@@ -96,7 +96,7 @@ h2 {
 // Tables
 .tables-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 16px;
   margin-top: 24px;
 }

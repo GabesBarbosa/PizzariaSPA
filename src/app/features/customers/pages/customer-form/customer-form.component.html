@@ -14,8 +14,9 @@
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Telefone</mat-label>
-        <input matInput formControlName="phone" placeholder="(00) 00000-0000">
+        <input matInput formControlName="phone" placeholder="(11) 99999-9999" (input)="formatPhone()" maxlength="16">
         <mat-error *ngIf="form.get('phone')?.hasError('required')">Telefone é obrigatório</mat-error>
+        <mat-error *ngIf="form.get('phone')?.hasError('invalidPhone')">Telefone inválido. Use DDD + número (ex: 11999887766)</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">

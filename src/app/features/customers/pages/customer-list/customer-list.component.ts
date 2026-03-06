@@ -9,11 +9,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatCardModule } from '@angular/material/card';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 
 import { Customer } from '../../../../shared/models';
 import { CustomerService } from '../../../../core/services/customer.service';
 import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-customer-list',
@@ -22,7 +26,8 @@ import { LoadingComponent } from '../../../../shared/components/loading/loading.
     CommonModule, RouterLink, FormsModule,
     MatTableModule, MatInputModule, MatFormFieldModule,
     MatButtonModule, MatIconModule, MatPaginatorModule,
-    MatCardModule, LoadingComponent
+    MatCardModule, MatTooltipModule, MatSnackBarModule,
+    MatDialogModule, LoadingComponent
   ],
   templateUrl: './customer-list.component.html',
   styleUrl: './customer-list.component.scss'
@@ -38,7 +43,11 @@ export class CustomerListComponent implements OnInit {
 
   private searchSubject = new Subject<string>();
 
-  constructor(private customerService: CustomerService) {}
+  constructor(
+    private customerService: CustomerService,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.searchSubject.pipe(
@@ -70,5 +79,27 @@ export class CustomerListComponent implements OnInit {
   private updatePagination(): void {
     const start = this.pageIndex * this.pageSize;
     this.paginatedCustomers = this.customers.slice(start, start + this.pageSize);
+  }
+
+  deleteCustomer(customer: Customer): void {
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Excluir Cliente',
+        message: `Tem certeza que deseja excluir o cliente "${customer.name}"?`
+      }
+    });
+    ref.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      this.customerService.delete(customer.id).subscribe({
+        next: () => {
+          this.customers = this.customers.filter(c => c.id !== customer.id);
+          this.updatePagination();
+          this.snackBar.open('Cliente excluído', 'OK', { duration: 2500 });
+        },
+        error: () => {
+          this.snackBar.open('Erro ao excluir cliente', 'OK', { duration: 3000 });
+        }
+      });
+    });
   }
 }
