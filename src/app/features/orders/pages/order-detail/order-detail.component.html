@@ -1,34 +1,40 @@
-<div *ngIf="notFound" class="not-found">
+<app-loading *ngIf="loading"></app-loading>
+
+<div *ngIf="!loading && notFound" class="not-found">
   <mat-card>
     <mat-card-content>
-      <p>Pedido não encontrado. Acesse os detalhes do pedido a partir da lista de pedidos do cliente.</p>
-      <a mat-flat-button color="primary" routerLink="/pedidos">Ir para Pedidos</a>
+      <mat-icon color="warn" class="not-found-icon">search_off</mat-icon>
+      <p>Pedido não encontrado.</p>
+      <a mat-flat-button color="primary" routerLink="/pedidos">Voltar para Pedidos</a>
     </mat-card-content>
   </mat-card>
 </div>
 
-<div *ngIf="order">
+<div *ngIf="!loading && order">
   <div class="page-header">
-    <h1>Pedido #{{ order.id }}</h1>
-    <a mat-button routerLink="/pedidos">Voltar</a>
+    <h1>Pedido #{{ order.id | slice:0:8 }}...</h1>
+    <a mat-button routerLink="/pedidos">
+      <mat-icon>arrow_back</mat-icon> Voltar
+    </a>
   </div>
 
   <div class="detail-grid">
+    <!-- Info Card -->
     <mat-card>
       <mat-card-header>
-        <mat-card-title>Informações</mat-card-title>
+        <mat-card-title>Informações do Pedido</mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <mat-list>
           <mat-list-item>
             <mat-icon matListItemIcon>person</mat-icon>
-            <span matListItemTitle>{{ order.customer?.name || 'N/A' }}</span>
+            <span matListItemTitle>{{ order.customerName || order.customer?.name || 'N/A' }}</span>
             <span matListItemLine>Cliente</span>
           </mat-list-item>
           <mat-list-item>
             <mat-icon matListItemIcon>calendar_today</mat-icon>
             <span matListItemTitle>{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
-            <span matListItemLine>Data</span>
+            <span matListItemLine>Data do Pedido</span>
           </mat-list-item>
           <mat-list-item>
             <mat-icon matListItemIcon>attach_money</mat-icon>
@@ -39,43 +45,64 @@
 
         <mat-divider></mat-divider>
 
+        <!-- Status Section -->
         <div class="status-section">
           <h3>Status</h3>
-          <mat-chip [class]="'status-' + order.status">
+          <span class="status-badge" [style.background-color]="getStatusColor(order.status)">
             {{ getStatusLabel(order.status) }}
-          </mat-chip>
+          </span>
 
-          <div class="status-change" *ngIf="order.status !== 'DELIVERED'">
-            <mat-form-field appearance="outline">
-              <mat-label>Alterar Status</mat-label>
-              <mat-select [(value)]="newStatus">
-                <mat-option *ngFor="let s of availableStatuses" [value]="s">
-                  {{ getStatusLabel(s) }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-            <button mat-flat-button color="primary" (click)="updateStatus()"
-                    [disabled]="!newStatus || updatingStatus">
-              Atualizar
+          <div class="status-actions" *ngIf="order.status !== 'DELIVERED'">
+            <button mat-mini-fab
+                    *ngIf="getPrevStatus()"
+                    color="warn"
+                    (click)="revertStatus()"
+                    [matTooltip]="'Voltar para: ' + getStatusLabel(getPrevStatus()!)"
+                    class="status-btn back-btn">
+              <mat-icon>undo</mat-icon>
+            </button>
+            <button mat-raised-button
+                    *ngIf="getNextStatus() as next"
+                    [color]="next === 'DELIVERED' ? 'primary' : 'accent'"
+                    (click)="advanceStatus()"
+                    [matTooltip]="getStatusLabel(next)">
+              <mat-icon>{{ getNextStatusIcon(next) }}</mat-icon>
+              {{ getStatusLabel(next) }}
+            </button>
+          </div>
+
+          <div class="status-actions" *ngIf="order.status === 'DELIVERED'">
+            <span class="delivered-label">
+              <mat-icon>check_circle</mat-icon> Pedido entregue
+            </span>
+            <button mat-mini-fab
+                    color="warn"
+                    (click)="revertStatus()"
+                    [matTooltip]="'Voltar para: ' + getStatusLabel(getPrevStatus()!)"
+                    class="status-btn back-btn">
+              <mat-icon>undo</mat-icon>
             </button>
           </div>
         </div>
       </mat-card-content>
     </mat-card>
 
+    <!-- Items Card -->
     <mat-card>
       <mat-card-header>
         <mat-card-title>Itens do Pedido</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <mat-list>
+        <mat-list *ngIf="order.items.length > 0">
           <mat-list-item *ngFor="let item of order.items">
-            <span matListItemTitle>{{ item.product?.name || 'Produto #' + item.productId }}</span>
+            <mat-icon matListItemIcon>local_pizza</mat-icon>
+            <span matListItemTitle>{{ item.productName || item.product?.name || 'Produto' }}</span>
             <span matListItemLine>
-              {{ item.quantity }}x {{ item.unitPrice | brl }} = {{ item.subtotal | brl }}
+              {{ item.quantity }}x {{ (item.price ?? 0) | brl }} = {{ item.quantity * (item.price ?? 0) | brl }}
             </span>
           </mat-list-item>
         </mat-list>
+        <p *ngIf="!order.items.length" class="empty-text">Nenhum item encontrado.</p>
         <mat-divider></mat-divider>
         <div class="order-total">
           <strong>Total: {{ order.total | brl }}</strong>

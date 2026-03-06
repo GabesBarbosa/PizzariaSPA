@@ -52,7 +52,7 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   viewOrder(order: Order): void {
-    this.router.navigate(['/pedidos', order.id], { state: { order } });
+    this.router.navigate(['/pedidos', order.id]);
   }
 
   private loadOrders(customerId: string): void {

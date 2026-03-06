@@ -7,15 +7,18 @@ export interface OrderItem {
   id?: string;
   productId: string;
   product?: Product;
+  productName?: string;
   quantity: number;
-  unitPrice: number;
-  subtotal: number;
+  price?: number;
+  unitPrice?: number;
+  subtotal?: number;
 }
 
 export interface Order {
   id: string;
   customerId: string;
   customer?: Customer;
+  customerName?: string;
   items: OrderItem[];
   total: number;
   status: OrderStatus;

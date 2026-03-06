@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,9 +11,9 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatStepperModule } from '@angular/material/stepper';
+import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { debounceTime, switchMap, of } from 'rxjs';
+import { debounceTime, switchMap, of, forkJoin } from 'rxjs';
 
 import { Customer, Product, CreateOrderDto } from '../../../../shared/models';
 import { CustomerService } from '../../../../core/services/customer.service';
@@ -52,12 +52,19 @@ export class OrderCreateComponent implements OnInit {
   orderNotes = '';
   submitting = false;
 
+  isEditMode = false;
+  orderId?: string;
+  loadingOrder = false;
+
+  @ViewChild('stepper') stepper!: MatStepper;
+
   constructor(
     private fb: FormBuilder,
     private customerService: CustomerService,
     private productService: ProductService,
     private orderService: OrderService,
     private router: Router,
+    private route: ActivatedRoute,
     private snackBar: MatSnackBar
   ) {}
 
@@ -81,9 +88,61 @@ export class OrderCreateComponent implements OnInit {
     this.productService.getAll().subscribe({
       next: (products) => {
         this.products = products;
+        this.checkLoadOrder();
       },
       error: () => {
         this.products = [];
+      }
+    });
+
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEditMode = true;
+      this.orderId = id;
+    }
+  }
+
+  private checkLoadOrder(): void {
+    if (!this.isEditMode || !this.orderId || this.products.length === 0) return;
+
+    this.loadingOrder = true;
+    this.orderService.getById(this.orderId).subscribe({
+      next: (order) => {
+        // Populate cart from order items
+        this.cart = order.items.map(item => {
+          const product = this.products.find(p => p.id === item.productId);
+          return {
+            product: product || { id: item.productId, name: item.productName || 'Produto', price: item.price || 0 } as Product,
+            quantity: item.quantity,
+            subtotal: item.quantity * (product?.price ?? item.price ?? 0)
+          };
+        });
+
+        this.orderNotes = order.notes || '';
+
+        // Load the customer, then advance stepper to products step
+        this.customerService.getById(order.customerId).subscribe({
+          next: (customer) => {
+            this.selectedCustomer = customer;
+            this.customerForm.get('search')!.setValue(customer, { emitEvent: false });
+            this.loadingOrder = false;
+
+            // Jump to products step after data is loaded
+            setTimeout(() => {
+              if (this.stepper) {
+                this.stepper.selectedIndex = 1;
+              }
+            });
+          },
+          error: () => {
+            this.loadingOrder = false;
+          }
+        });
+      },
+      error: () => {
+        this.snackBar.open('Erro ao carregar pedido', 'OK', { duration: 3000 });
+        this.loadingOrder = false;
+        this.router.navigate(['/pedidos']);
       }
     });
   }
@@ -122,6 +181,19 @@ export class OrderCreateComponent implements OnInit {
     this.cart = [...this.cart];
   }
 
+  increaseQty(index: number): void {
+    this.cart[index].quantity++;
+    this.cart[index].subtotal = this.cart[index].quantity * this.cart[index].product.price;
+    this.cart = [...this.cart];
+  }
+
+  decreaseQty(index: number): void {
+    if (this.cart[index].quantity <= 1) return;
+    this.cart[index].quantity--;
+    this.cart[index].subtotal = this.cart[index].quantity * this.cart[index].product.price;
+    this.cart = [...this.cart];
+  }
+
   get orderTotal(): number {
     return this.cart.reduce((sum, item) => sum + item.subtotal, 0);
   }
@@ -140,10 +212,15 @@ export class OrderCreateComponent implements OnInit {
       notes: this.orderNotes || undefined
     };
 
-    this.orderService.create(order).subscribe({
-      next: (created) => {
-        this.snackBar.open(`Pedido criado com sucesso!`, 'OK', { duration: 3000 });
-        this.router.navigate(['/pedidos', created.id], { state: { order: created } });
+    const request$ = this.isEditMode && this.orderId
+      ? this.orderService.update(this.orderId, order)
+      : this.orderService.create(order);
+
+    request$.subscribe({
+      next: () => {
+        const msg = this.isEditMode ? 'Pedido atualizado com sucesso!' : 'Pedido criado com sucesso!';
+        this.snackBar.open(msg, 'OK', { duration: 3000 });
+        this.router.navigate(['/pedidos']);
       },
       error: () => {
         this.submitting = false;
