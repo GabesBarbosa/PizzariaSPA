@@ -9,6 +9,10 @@ export class CustomerService {
 
   constructor(private http: HttpClient) {}
 
+  getAll(): Observable<Customer[]> {
+    return this.http.get<Customer[]>(this.baseUrl);
+  }
+
   search(query: string): Observable<Customer[]> {
     const params = new HttpParams().set('q', query);
     return this.http.get<Customer[]>(this.baseUrl, { params });

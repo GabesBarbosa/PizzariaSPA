@@ -25,6 +25,10 @@ import { MatIconModule } from '@angular/material/icon';
         <mat-icon matListItemIcon>local_pizza</mat-icon>
         <span matListItemTitle>Produtos</span>
       </a>
+      <a mat-list-item routerLink="/mensagens" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>chat</mat-icon>
+        <span matListItemTitle>WhatsApp</span>
+      </a>
     </mat-nav-list>
   `,
   styles: [`

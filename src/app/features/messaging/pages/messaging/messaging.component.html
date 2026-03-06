@@ -1,0 +1,95 @@
+<div class="page-header">
+  <h1>
+    <mat-icon class="header-icon">chat</mat-icon>
+    WhatsApp - Enviar Promoções
+  </h1>
+</div>
+
+<app-loading *ngIf="loading"></app-loading>
+
+<div class="messaging-layout" *ngIf="!loading">
+  <!-- Mensagem -->
+  <mat-card class="message-card">
+    <mat-card-header>
+      <mat-card-title>Mensagem</mat-card-title>
+      <mat-card-subtitle>Escreva a mensagem de promoção para enviar via WhatsApp</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Mensagem</mat-label>
+        <textarea matInput [(ngModel)]="message" rows="6"
+                  placeholder="Ex: 🍕 Promoção de hoje! Pizza Margherita por apenas R$ 24,90. Peça já!"></textarea>
+        <mat-hint>{{ message.length }} caracteres</mat-hint>
+      </mat-form-field>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-flat-button color="primary" (click)="sendMessages()" [disabled]="!canSend">
+        <mat-icon>send</mat-icon>
+        {{ sending ? 'Enviando...' : 'Enviar para ' + selectedIds.size + ' cliente(s)' }}
+      </button>
+    </mat-card-actions>
+    <mat-progress-bar *ngIf="sending" mode="indeterminate"></mat-progress-bar>
+  </mat-card>
+
+  <!-- Clientes -->
+  <mat-card class="customers-card">
+    <mat-card-header>
+      <mat-card-title>Selecionar Clientes</mat-card-title>
+      <mat-card-subtitle>{{ selectedIds.size }} de {{ customers.length }} selecionados</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="select-all">
+        <mat-checkbox [checked]="selectAll" (change)="selectAll = !selectAll; toggleSelectAll()">
+          Selecionar todos
+        </mat-checkbox>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div class="customer-list">
+        <div *ngFor="let c of customers" class="customer-item" (click)="toggleCustomer(c.id)">
+          <mat-checkbox [checked]="isSelected(c.id)" (click)="$event.stopPropagation()" (change)="toggleCustomer(c.id)">
+          </mat-checkbox>
+          <div class="customer-info">
+            <strong>{{ c.name }}</strong>
+            <span class="phone">
+              <mat-icon class="phone-icon">phone</mat-icon>
+              {{ c.phone }}
+            </span>
+          </div>
+        </div>
+
+        <p *ngIf="customers.length === 0" class="empty-text">
+          Nenhum cliente cadastrado.
+        </p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Resultado -->
+<mat-card *ngIf="result" class="result-card">
+  <mat-card-header>
+    <mat-card-title>Resultado do Envio</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="result-summary">
+      <div class="result-stat success">
+        <mat-icon>check_circle</mat-icon>
+        <span>{{ result.success.length }} enviadas</span>
+      </div>
+      <div class="result-stat error" *ngIf="result.failed.length > 0">
+        <mat-icon>error</mat-icon>
+        <span>{{ result.failed.length }} falharam</span>
+      </div>
+    </div>
+
+    <div *ngIf="result.failed.length > 0" class="failed-list">
+      <mat-divider></mat-divider>
+      <h3>Falhas:</h3>
+      <div *ngFor="let f of result.failed" class="failed-item">
+        <strong>{{ f.phone }}</strong>: {{ f.error }}
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
