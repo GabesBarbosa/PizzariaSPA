@@ -9,8 +9,12 @@ import { MatIconModule } from '@angular/material/icon';
   imports: [RouterLink, RouterLinkActive, MatListModule, MatIconModule],
   template: `
     <mat-nav-list>
+      <a mat-list-item routerLink="/home" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>home</mat-icon>
+        <span matListItemTitle>Início</span>
+      </a>
       <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link">
-        <mat-icon matListItemIcon>dashboard</mat-icon>
+        <mat-icon matListItemIcon>bar_chart</mat-icon>
         <span matListItemTitle>Dashboard</span>
       </a>
       <a mat-list-item routerLink="/pedidos" routerLinkActive="active-link">

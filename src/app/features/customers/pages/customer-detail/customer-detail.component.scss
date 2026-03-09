@@ -20,6 +20,28 @@
   cursor: pointer;
 }
 
+.whatsapp-section {
+  padding: 12px 16px 4px;
+}
+
+.whatsapp-btn {
+  mat-icon {
+    color: #25d366;
+  }
+}
+
+.whatsapp-form {
+  margin-top: 12px;
+
+  .full-width {
+    width: 100%;
+  }
+
+  button {
+    margin-top: 4px;
+  }
+}
+
 @media (max-width: 768px) {
   .detail-grid {
     grid-template-columns: 1fr;

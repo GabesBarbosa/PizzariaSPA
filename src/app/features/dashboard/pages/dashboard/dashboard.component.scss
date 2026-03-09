@@ -6,17 +6,12 @@ h1 {
   margin-bottom: 16px;
 }
 
-h2 {
-  margin: 24px 0 12px;
-  font-size: 1.2rem;
-  font-weight: 500;
-}
-
-// KPI Cards
+// KPI Cards — 5 cards
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 16px;
+  margin-bottom: 20px;
 }
 
 .kpi-card {
@@ -31,100 +26,62 @@ h2 {
 .kpi {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   padding: 8px 0;
 }
 
 .kpi-icon {
-  font-size: 44px;
-  width: 44px;
-  height: 44px;
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
 }
 
 .kpi-value {
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   font-weight: 700;
   line-height: 1.2;
 }
 
 .kpi-label {
   color: rgba(0, 0, 0, 0.54);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   margin-top: 2px;
 }
 
-// Quick Actions
-.actions-grid {
+// Charts
+.charts-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
+  margin-bottom: 16px;
 }
 
-.action-card {
-  cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.2s;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
-  }
+.chart-card {
+  min-height: 280px;
 }
 
-.action {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 8px 0;
+.full-width-card {
+  margin-bottom: 16px;
 }
 
-.action mat-icon {
-  font-size: 40px;
-  width: 40px;
-  height: 40px;
-}
-
-.action-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.action-desc {
-  color: rgba(0, 0, 0, 0.54);
-  font-size: 0.85rem;
-}
-
-// Tables
-.tables-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 16px;
-  margin-top: 24px;
-}
-
-.full-width {
+.chart-container {
+  position: relative;
+  height: 300px;
   width: 100%;
 }
 
-.status-badge {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 12px;
-  color: #fff;
-  font-size: 0.78rem;
-  font-weight: 500;
-  white-space: nowrap;
+.chart-container-lg {
+  position: relative;
+  height: 340px;
+  width: 100%;
 }
 
-.empty-state {
-  padding: 24px 0;
-  text-align: center;
-  color: rgba(0, 0, 0, 0.38);
-}
-
-.card-action {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
+.chart-container-sm {
+  position: relative;
+  height: 300px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
 }
 
 .loading-wrapper {
@@ -149,18 +106,23 @@ h2 {
 }
 
 // Responsive
+@media (max-width: 1400px) {
+  .kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 960px) {
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .tables-grid {
+  .charts-row {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 600px) {
-  .kpi-grid,
-  .actions-grid {
+  .kpi-grid {
     grid-template-columns: 1fr;
   }
 }

@@ -15,14 +15,16 @@
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>E-mail</mat-label>
                 <input matInput type="email" [(ngModel)]="loginEmail" name="email"
-                       placeholder="seu@email.com" required>
+                       placeholder="seu@email.com" required maxlength="200"
+                       autocomplete="email">
                 <mat-icon matPrefix>email</mat-icon>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Senha</mat-label>
                 <input matInput [type]="hideLoginPassword ? 'password' : 'text'"
-                       [(ngModel)]="loginPassword" name="password" required>
+                       [(ngModel)]="loginPassword" name="password" required maxlength="128"
+                       autocomplete="current-password">
                 <mat-icon matPrefix>lock</mat-icon>
                 <button mat-icon-button matSuffix type="button"
                         (click)="hideLoginPassword = !hideLoginPassword">

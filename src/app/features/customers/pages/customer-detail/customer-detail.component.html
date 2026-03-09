@@ -24,6 +24,28 @@
             <span matListItemLine>Endereço</span>
           </mat-list-item>
         </mat-list>
+
+        <div class="whatsapp-section">
+          <button mat-stroked-button color="primary" class="whatsapp-btn"
+                  (click)="showWhatsappForm = !showWhatsappForm">
+            <mat-icon>chat</mat-icon>
+            {{ showWhatsappForm ? 'Fechar' : 'Enviar WhatsApp' }}
+          </button>
+
+          <div *ngIf="showWhatsappForm" class="whatsapp-form">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Mensagem</mat-label>
+              <textarea matInput [(ngModel)]="whatsappMessage" rows="3"
+                        placeholder="Digite a mensagem para {{ customer.name }}..."></textarea>
+            </mat-form-field>
+            <button mat-flat-button color="primary" (click)="sendWhatsapp()"
+                    [disabled]="!whatsappMessage.trim() || sendingWhatsapp">
+              <mat-icon>send</mat-icon>
+              {{ sendingWhatsapp ? 'Enviando...' : 'Enviar' }}
+            </button>
+            <mat-progress-bar *ngIf="sendingWhatsapp" mode="indeterminate"></mat-progress-bar>
+          </div>
+        </div>
       </mat-card-content>
     </mat-card>
 

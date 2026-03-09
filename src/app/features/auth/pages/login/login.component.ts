@@ -52,16 +52,26 @@ export class LoginComponent {
   }
 
   onLogin(): void {
-    if (!this.loginEmail || !this.loginPassword) return;
+    const email = this.loginEmail.trim().toLowerCase();
+    const password = this.loginPassword;
+
+    if (!email || !password) return;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      this.snackBar.open('E-mail inválido', 'OK', { duration: 3000 });
+      return;
+    }
+
     this.loginLoading = true;
-    this.authService.login(this.loginEmail, this.loginPassword).subscribe({
+    this.authService.login(email, password).subscribe({
       next: () => {
         this.loginLoading = false;
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.loginLoading = false;
-        this.snackBar.open(err.error?.message || 'Erro ao fazer login', 'OK', { duration: 4000 });
+        this.snackBar.open('E-mail ou senha incorretos', 'OK', { duration: 4000 });
       }
     });
   }

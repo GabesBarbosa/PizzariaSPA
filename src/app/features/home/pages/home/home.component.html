@@ -1,0 +1,161 @@
+<div class="home">
+  <h1>Início</h1>
+
+  <div *ngIf="loading" class="loading-wrapper">
+    <mat-spinner diameter="48"></mat-spinner>
+  </div>
+
+  <div *ngIf="error && !loading" class="error-wrapper">
+    <mat-icon color="warn">error_outline</mat-icon>
+    <p>Não foi possível carregar os dados.</p>
+  </div>
+
+  <ng-container *ngIf="stats && !loading">
+    <div class="kpi-grid">
+      <mat-card class="kpi-card">
+        <mat-card-content>
+          <div class="kpi">
+            <mat-icon class="kpi-icon" style="color: #1976d2">receipt_long</mat-icon>
+            <div>
+              <div class="kpi-value">{{ stats.totalOrders }}</div>
+              <div class="kpi-label">Pedidos Totais</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-content>
+          <div class="kpi">
+            <mat-icon class="kpi-icon" style="color: #f57c00">hourglass_empty</mat-icon>
+            <div>
+              <div class="kpi-value">{{ stats.pendingOrders }}</div>
+              <div class="kpi-label">Pedidos Pendentes</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-content>
+          <div class="kpi">
+            <mat-icon class="kpi-icon" style="color: #388e3c">attach_money</mat-icon>
+            <div>
+              <div class="kpi-value">{{ stats.totalRevenue | brl }}</div>
+              <div class="kpi-label">Receita Total</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-content>
+          <div class="kpi">
+            <mat-icon class="kpi-icon" style="color: #7b1fa2">people</mat-icon>
+            <div>
+              <div class="kpi-value">{{ stats.totalCustomers }}</div>
+              <div class="kpi-label">Clientes</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <h2>Ações Rápidas</h2>
+    <div class="actions-grid">
+      <mat-card class="action-card" routerLink="/pedidos/novo">
+        <mat-card-content>
+          <div class="action">
+            <mat-icon color="primary">add_circle</mat-icon>
+            <div>
+              <div class="action-title">Novo Pedido</div>
+              <div class="action-desc">Criar um novo pedido</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="action-card" routerLink="/clientes/novo">
+        <mat-card-content>
+          <div class="action">
+            <mat-icon color="accent">person_add</mat-icon>
+            <div>
+              <div class="action-title">Novo Cliente</div>
+              <div class="action-desc">Cadastrar um novo cliente</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="tables-grid">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Pedidos Recentes</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div *ngIf="stats.recentOrders.length === 0" class="empty-state">
+            Nenhum pedido encontrado.
+          </div>
+          <table mat-table [dataSource]="stats.recentOrders" *ngIf="stats.recentOrders.length > 0" class="full-width">
+            <ng-container matColumnDef="customer">
+              <th mat-header-cell *matHeaderCellDef>Cliente</th>
+              <td mat-cell *matCellDef="let row">{{ row.customerName || '—' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="total">
+              <th mat-header-cell *matHeaderCellDef>Total</th>
+              <td mat-cell *matCellDef="let row">{{ row.total | brl }}</td>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="status-badge" [style.background-color]="getStatusColor(row.status)">
+                  {{ getStatusLabel(row.status) }}
+                </span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef>Data</th>
+              <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="recentOrderColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: recentOrderColumns;"></tr>
+          </table>
+          <div class="card-action">
+            <a mat-button color="primary" routerLink="/pedidos">Ver todos os pedidos</a>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Produtos Mais Vendidos</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div *ngIf="stats.topProducts.length === 0" class="empty-state">
+            Nenhum produto vendido ainda.
+          </div>
+          <table mat-table [dataSource]="stats.topProducts" *ngIf="stats.topProducts.length > 0" class="full-width">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Produto</th>
+              <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+            </ng-container>
+            <ng-container matColumnDef="sold">
+              <th mat-header-cell *matHeaderCellDef>Vendidos</th>
+              <td mat-cell *matCellDef="let row">{{ row.totalSold }}</td>
+            </ng-container>
+            <ng-container matColumnDef="revenue">
+              <th mat-header-cell *matHeaderCellDef>Receita</th>
+              <td mat-cell *matCellDef="let row">{{ row.totalRevenue | brl }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="topProductColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: topProductColumns;"></tr>
+          </table>
+          <div class="card-action">
+            <a mat-button color="primary" routerLink="/produtos">Ver todos os produtos</a>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </ng-container>
+</div>

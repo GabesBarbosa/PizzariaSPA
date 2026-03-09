@@ -2,6 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface WhatsappStatus {
+  connected: boolean;
+  qrCode: string | null;
+}
+
 export interface SendMessageDto {
   phone: string;
   message: string;
@@ -18,6 +23,10 @@ export class WhatsappService {
   private readonly baseUrl = '/api/whatsapp';
 
   constructor(private http: HttpClient) {}
+
+  getStatus(): Observable<WhatsappStatus> {
+    return this.http.get<WhatsappStatus>(`${this.baseUrl}/status`);
+  }
 
   send(data: SendMessageDto): Observable<any> {
     return this.http.post(`${this.baseUrl}/send`, data);
