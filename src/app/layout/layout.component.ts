@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './navbar/navbar.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
+import { NotificationService } from '../core/services/notification.service';
 
 @Component({
   selector: 'app-layout',
@@ -59,8 +60,18 @@ import { SidebarComponent } from './sidebar/sidebar.component';
     }
   `]
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit, OnDestroy {
   sidenavOpen = true;
+
+  constructor(private notificationService: NotificationService) {}
+
+  ngOnInit(): void {
+    this.notificationService.connect();
+  }
+
+  ngOnDestroy(): void {
+    this.notificationService.disconnect();
+  }
 
   toggleSidenav(): void {
     this.sidenavOpen = !this.sidenavOpen;

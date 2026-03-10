@@ -1,0 +1,86 @@
+import { Injectable, NgZone, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import Swal from 'sweetalert2';
+
+export interface NewOrderEvent {
+  id: number;
+  customerName: string;
+  total: number;
+  itemCount: number;
+}
+
+@Injectable({ providedIn: 'root' })
+export class NotificationService implements OnDestroy {
+  private eventSource: EventSource | null = null;
+  private audio: HTMLAudioElement | null = null;
+
+  readonly newOrder$ = new Subject<NewOrderEvent>();
+
+  constructor(private zone: NgZone) {}
+
+  connect(): void {
+    if (this.eventSource) return;
+
+    const token = localStorage.getItem('token');
+    const url = `${environment.apiUrl}/notifications/stream?token=${encodeURIComponent(token || '')}`;
+    this.eventSource = new EventSource(url);
+
+    this.eventSource.addEventListener('new-order', (event: any) => {
+      this.zone.run(() => {
+        const data: NewOrderEvent = JSON.parse(event.data);
+        this.newOrder$.next(data);
+        this.showAlert(data);
+        this.playSound();
+      });
+    });
+
+    this.eventSource.onerror = () => {
+      this.disconnect();
+      setTimeout(() => this.connect(), 5000);
+    };
+  }
+
+  disconnect(): void {
+    this.eventSource?.close();
+    this.eventSource = null;
+  }
+
+  ngOnDestroy(): void {
+    this.disconnect();
+  }
+
+  private showAlert(order: NewOrderEvent): void {
+    const brl = order.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    Swal.fire({
+      title: '🍕 Novo Pedido via WhatsApp!',
+      html: `
+        <div style="text-align:left; font-size:15px; line-height:1.8">
+          <b>Pedido #${order.id}</b><br>
+          👤 ${order.customerName}<br>
+          📦 ${order.itemCount} ${order.itemCount === 1 ? 'item' : 'itens'}<br>
+          💰 ${brl}
+        </div>`,
+      icon: 'info',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#e53935',
+      timer: 15000,
+      timerProgressBar: true,
+      toast: false,
+      position: 'center',
+    });
+  }
+
+  private playSound(): void {
+    try {
+      if (!this.audio) {
+        this.audio = new Audio();
+        this.audio.src = 'assets/notification.wav';
+      }
+      this.audio.currentTime = 0;
+      this.audio.play().catch(() => {});
+    } catch {
+      /* audio blocked by browser policy */
+    }
+  }
+}

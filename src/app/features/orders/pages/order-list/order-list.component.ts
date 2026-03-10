@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -9,9 +9,11 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { Subscription } from 'rxjs';
 
 import { Order, OrderStatus } from '../../../../shared/models';
 import { OrderService } from '../../../../core/services/order.service';
+import { NotificationService } from '../../../../core/services/notification.service';
 import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
 import { BrlPipe } from '../../../../shared/utils/brl.pipe';
 import { ORDER_STATUS_LABELS, ORDER_STATUS_FLOW } from '../../../../shared/utils/order-status.util';
@@ -30,15 +32,17 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
   templateUrl: './order-list.component.html',
   styleUrl: './order-list.component.scss'
 })
-export class OrderListComponent implements OnInit {
+export class OrderListComponent implements OnInit, OnDestroy {
   orders: Order[] = [];
   loading = true;
   displayedColumns = ['id', 'customer', 'total', 'status', 'createdAt', 'actions'];
   readonly statusLabels = ORDER_STATUS_LABELS;
   readonly statusFlow = ORDER_STATUS_FLOW;
+  private orderSub?: Subscription;
 
   constructor(
     private orderService: OrderService,
+    private notificationService: NotificationService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private router: Router
@@ -46,6 +50,13 @@ export class OrderListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadOrders();
+    this.orderSub = this.notificationService.newOrder$.subscribe(() => {
+      this.loadOrders();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.orderSub?.unsubscribe();
   }
 
   getStatusLabel(status: string): string {
