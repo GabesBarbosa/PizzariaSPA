@@ -11,11 +11,13 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { debounceTime, switchMap, of, forkJoin } from 'rxjs';
 
-import { Customer, Product, CreateOrderDto, PaymentMethod } from '../../../../shared/models';
+import { Customer, Product, CreateOrderDto, PaymentMethod, PizzaSize } from '../../../../shared/models';
 import { CustomerService } from '../../../../core/services/customer.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { OrderService } from '../../../../core/services/order.service';
@@ -26,6 +28,8 @@ interface CartItem {
   product: Product;
   quantity: number;
   subtotal: number;
+  size: PizzaSize;
+  halfProduct?: Product;
 }
 
 @Component({
@@ -36,7 +40,8 @@ interface CartItem {
     MatCardModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatAutocompleteModule,
     MatSelectModule, MatTableModule, MatDividerModule,
-    MatStepperModule, MatSnackBarModule, BrlPipe,
+    MatStepperModule, MatSnackBarModule, MatChipsModule,
+    MatButtonToggleModule, BrlPipe,
     CurrencyMaskDirective
   ],
   templateUrl: './order-create.component.html',
@@ -52,9 +57,15 @@ export class OrderCreateComponent implements OnInit {
   selectedCustomer?: Customer;
   products: Product[] = [];
   filteredProducts: Product[] = [];
+  categories: string[] = [];
+  selectedCategory = '';
   productSearchText = '';
   selectedProduct?: Product;
   selectedQuantity = 1;
+  pizzaSize: PizzaSize = 'normal';
+  meioAMeio = false;
+  halfProduct?: Product;
+  readonly BROTINHO_MULT = 0.65;
   cart: CartItem[] = [];
   cartColumns = ['product', 'unitPrice', 'quantity', 'subtotal', 'actions'];
   orderNotes = '';
@@ -115,6 +126,7 @@ export class OrderCreateComponent implements OnInit {
       next: (products) => {
         this.products = products;
         this.filteredProducts = products;
+        this.categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
         this.checkLoadOrder();
       },
       error: () => {
@@ -139,10 +151,16 @@ export class OrderCreateComponent implements OnInit {
         // Populate cart from order items
         this.cart = order.items.map(item => {
           const product = this.products.find(p => p.id === item.productId);
+          const halfProduct = item.halfProductId ? this.products.find(p => p.id === item.halfProductId) : undefined;
+          const size = (item.size || 'normal') as PizzaSize;
+          const mainProd = product || { id: item.productId, name: item.productName || 'Produto', price: item.price || 0 } as Product;
+          const unitPrice = this.calcItemPrice(mainProd, halfProduct, size);
           return {
-            product: product || { id: item.productId, name: item.productName || 'Produto', price: item.price || 0 } as Product,
+            product: mainProd,
             quantity: item.quantity,
-            subtotal: item.quantity * (product?.price ?? item.price ?? 0)
+            subtotal: item.quantity * unitPrice,
+            size,
+            halfProduct
           };
         });
 
@@ -245,16 +263,21 @@ export class OrderCreateComponent implements OnInit {
     return null;
   }
 
+  selectCategory(category: string): void {
+    this.selectedCategory = this.selectedCategory === category ? '' : category;
+    this.filterProducts();
+  }
+
   filterProducts(): void {
-    const text = this.productSearchText.toLowerCase().trim();
-    if (!text) {
-      this.filteredProducts = this.products;
-    } else {
-      this.filteredProducts = this.products.filter(p =>
-        p.name.toLowerCase().includes(text) ||
-        (p.category && p.category.toLowerCase().includes(text))
-      );
+    let result = this.products;
+    if (this.selectedCategory) {
+      result = result.filter(p => p.category === this.selectedCategory);
     }
+    const text = this.productSearchText.toLowerCase().trim();
+    if (text) {
+      result = result.filter(p => p.name.toLowerCase().includes(text));
+    }
+    this.filteredProducts = result;
   }
 
   displayProduct(product: Product): string {
@@ -262,30 +285,57 @@ export class OrderCreateComponent implements OnInit {
   }
 
   selectProduct(product: Product): void {
-    this.selectedProduct = product;
+    if (this.meioAMeio && this.selectedProduct) {
+      this.halfProduct = product;
+    } else {
+      this.selectedProduct = product;
+      this.halfProduct = undefined;
+    }
+  }
+
+  get isPizzaCategory(): boolean {
+    return this.selectedCategory.startsWith('Pizza') ||
+      (!!this.selectedProduct && this.selectedProduct.category.startsWith('Pizza'));
+  }
+
+  calcItemPrice(product: Product, halfProd?: Product, size: PizzaSize = 'normal'): number {
+    let price = product.price;
+    if (halfProd) price = Math.max(price, halfProd.price);
+    if (size === 'brotinho') price = Math.round(price * this.BROTINHO_MULT * 100) / 100;
+    return price;
   }
 
   addToCart(): void {
     if (!this.selectedProduct) return;
     const product = this.selectedProduct;
+    const half = this.meioAMeio ? this.halfProduct : undefined;
+    const size = this.isPizzaCategory ? this.pizzaSize : 'normal' as PizzaSize;
+    const unitPrice = this.calcItemPrice(product, half, size);
 
-    const existingIndex = this.cart.findIndex(i => i.product.id === product.id);
+    // for meio-a-meio or brotinho, don't merge with existing — always add new line
+    const shouldMerge = !half && size === 'normal';
+    const existingIndex = shouldMerge ? this.cart.findIndex(i => i.product.id === product.id && !i.halfProduct && i.size === 'normal') : -1;
     if (existingIndex >= 0) {
       this.cart[existingIndex].quantity += this.selectedQuantity;
-      this.cart[existingIndex].subtotal = this.cart[existingIndex].quantity * product.price;
+      this.cart[existingIndex].subtotal = this.cart[existingIndex].quantity * unitPrice;
     } else {
       this.cart.push({
         product,
         quantity: this.selectedQuantity,
-        subtotal: this.selectedQuantity * product.price
+        subtotal: this.selectedQuantity * unitPrice,
+        size,
+        halfProduct: half
       });
     }
 
-    this.cart = [...this.cart]; // trigger table update
+    this.cart = [...this.cart];
     this.selectedProduct = undefined;
+    this.halfProduct = undefined;
     this.productSearchText = '';
-    this.filteredProducts = this.products;
     this.selectedQuantity = 1;
+    this.meioAMeio = false;
+    this.pizzaSize = 'normal';
+    this.filterProducts();
   }
 
   removeFromCart(index: number): void {
@@ -294,15 +344,19 @@ export class OrderCreateComponent implements OnInit {
   }
 
   increaseQty(index: number): void {
-    this.cart[index].quantity++;
-    this.cart[index].subtotal = this.cart[index].quantity * this.cart[index].product.price;
+    const item = this.cart[index];
+    item.quantity++;
+    const unitPrice = this.calcItemPrice(item.product, item.halfProduct, item.size);
+    item.subtotal = item.quantity * unitPrice;
     this.cart = [...this.cart];
   }
 
   decreaseQty(index: number): void {
     if (this.cart[index].quantity <= 1) return;
-    this.cart[index].quantity--;
-    this.cart[index].subtotal = this.cart[index].quantity * this.cart[index].product.price;
+    const item = this.cart[index];
+    item.quantity--;
+    const unitPrice = this.calcItemPrice(item.product, item.halfProduct, item.size);
+    item.subtotal = item.quantity * unitPrice;
     this.cart = [...this.cart];
   }
 
@@ -327,7 +381,9 @@ export class OrderCreateComponent implements OnInit {
       customerId: this.selectedCustomer.id,
       items: this.cart.map(item => ({
         productId: item.product.id,
-        quantity: item.quantity
+        quantity: item.quantity,
+        size: item.size !== 'normal' ? item.size : undefined,
+        halfProductId: item.halfProduct?.id || undefined
       })),
       paymentMethod: this.paymentMethod || undefined,
       deliveryAddress: this.deliveryAddress || undefined,

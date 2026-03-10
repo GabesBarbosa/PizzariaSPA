@@ -105,32 +105,88 @@
         <mat-card-title>Selecionar Produtos</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <div class="product-selector">
-          <mat-form-field appearance="outline" class="product-field">
-            <mat-label>Buscar produto / sabor</mat-label>
-            <input matInput
-                   [(ngModel)]="productSearchText"
-                   [ngModelOptions]="{standalone: true}"
-                   [matAutocomplete]="autoProduct"
-                   (input)="filterProducts()"
-                   placeholder="Digite o nome ou categoria">
-            <mat-icon matSuffix>search</mat-icon>
-            <mat-autocomplete #autoProduct="matAutocomplete"
-                              [displayWith]="displayProduct"
-                              (optionSelected)="selectProduct($event.option.value)">
-              <mat-option *ngFor="let p of filteredProducts" [value]="p">
-                {{ p.name }} <span class="product-category">({{ p.category }})</span> - {{ p.price | brl }}
-              </mat-option>
-            </mat-autocomplete>
-          </mat-form-field>
+        <!-- Category chips -->
+        <div class="category-chips">
+          <mat-chip-listbox>
+            <mat-chip-option
+              [selected]="selectedCategory === ''"
+              (click)="selectCategory('')">
+              Todos
+            </mat-chip-option>
+            <mat-chip-option
+              *ngFor="let cat of categories"
+              [selected]="selectedCategory === cat"
+              (click)="selectCategory(cat)">
+              {{ cat }}
+            </mat-chip-option>
+          </mat-chip-listbox>
+        </div>
 
+        <!-- Search within category -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Buscar produto</mat-label>
+          <input matInput
+                 [(ngModel)]="productSearchText"
+                 [ngModelOptions]="{standalone: true}"
+                 (input)="filterProducts()"
+                 placeholder="Filtrar por nome...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <!-- Product grid -->
+        <div class="product-grid">
+          <div *ngFor="let p of filteredProducts"
+               class="product-card"
+               [class.product-card--selected]="selectedProduct?.id === p.id"
+               [class.product-card--half]="halfProduct?.id === p.id"
+               (click)="selectProduct(p)">
+            <div class="product-card__name">{{ p.name }}</div>
+            <div class="product-card__category">{{ p.category }}</div>
+            <div class="product-card__price">{{ p.price | brl }}</div>
+          </div>
+          <p *ngIf="filteredProducts.length === 0" class="no-products">
+            Nenhum produto encontrado.
+          </p>
+        </div>
+
+        <!-- Pizza options (size + meio a meio) -->
+        <div class="pizza-options" *ngIf="selectedProduct && isPizzaCategory">
+          <div class="pizza-option-group">
+            <label>Tamanho:</label>
+            <mat-button-toggle-group [(ngModel)]="pizzaSize" [ngModelOptions]="{standalone: true}" appearance="standard">
+              <mat-button-toggle value="normal">Normal</mat-button-toggle>
+              <mat-button-toggle value="brotinho">Brotinho (35% off)</mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+          <div class="pizza-option-group">
+            <mat-chip-listbox>
+              <mat-chip-option [selected]="meioAMeio" (click)="meioAMeio = !meioAMeio; halfProduct = undefined"
+                               color="primary">
+                <mat-icon>content_cut</mat-icon> Meio a Meio
+              </mat-chip-option>
+            </mat-chip-listbox>
+            <span *ngIf="meioAMeio && !halfProduct" class="hint">Clique no 2º sabor acima</span>
+            <span *ngIf="meioAMeio && halfProduct" class="hint hint--ok">
+              ½ {{ selectedProduct.name }} + ½ {{ halfProduct.name }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Quantity + Add -->
+        <div class="add-bar" *ngIf="selectedProduct && (!meioAMeio || halfProduct)">
+          <div class="add-bar__product">
+            <strong>
+              <ng-container *ngIf="halfProduct">½ {{ selectedProduct.name }} + ½ {{ halfProduct.name }}</ng-container>
+              <ng-container *ngIf="!halfProduct">{{ selectedProduct.name }}</ng-container>
+              <span *ngIf="pizzaSize === 'brotinho' && isPizzaCategory" class="size-badge">Brotinho</span>
+            </strong>
+            <span>{{ calcItemPrice(selectedProduct, halfProduct, isPizzaCategory ? pizzaSize : 'normal') | brl }}</span>
+          </div>
           <mat-form-field appearance="outline" class="qty-field">
             <mat-label>Qtd</mat-label>
             <input matInput type="number" [(ngModel)]="selectedQuantity" min="1" [ngModelOptions]="{standalone: true}">
           </mat-form-field>
-
-          <button mat-flat-button color="accent" (click)="addToCart()"
-                  [disabled]="!selectedProduct || selectedQuantity < 1">
+          <button mat-flat-button color="accent" (click)="addToCart()">
             <mat-icon>add_shopping_cart</mat-icon> Adicionar
           </button>
         </div>
@@ -140,12 +196,16 @@
         <table mat-table [dataSource]="cart" *ngIf="cart.length > 0" class="full-width cart-table">
           <ng-container matColumnDef="product">
             <th mat-header-cell *matHeaderCellDef>Produto</th>
-            <td mat-cell *matCellDef="let item">{{ item.product.name }}</td>
+            <td mat-cell *matCellDef="let item">
+              <ng-container *ngIf="item.halfProduct">½ {{ item.product.name }} + ½ {{ item.halfProduct.name }}</ng-container>
+              <ng-container *ngIf="!item.halfProduct">{{ item.product.name }}</ng-container>
+              <span *ngIf="item.size === 'brotinho'" class="size-badge">Brotinho</span>
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="unitPrice">
             <th mat-header-cell *matHeaderCellDef>Preço Unit.</th>
-            <td mat-cell *matCellDef="let item">{{ item.product.price | brl }}</td>
+            <td mat-cell *matCellDef="let item">{{ calcItemPrice(item.product, item.halfProduct, item.size) | brl }}</td>
           </ng-container>
 
           <ng-container matColumnDef="quantity">
@@ -258,7 +318,11 @@
         <div class="confirmation-section">
           <h3>Itens</h3>
           <div *ngFor="let item of cart" class="confirmation-item">
-            {{ item.quantity }}x {{ item.product.name }} - {{ item.subtotal | brl }}
+            {{ item.quantity }}x
+            <ng-container *ngIf="item.halfProduct">½ {{ item.product.name }} + ½ {{ item.halfProduct.name }}</ng-container>
+            <ng-container *ngIf="!item.halfProduct">{{ item.product.name }}</ng-container>
+            <span *ngIf="item.size === 'brotinho'" class="size-badge">Brotinho</span>
+            - {{ item.subtotal | brl }}
           </div>
         </div>
 
