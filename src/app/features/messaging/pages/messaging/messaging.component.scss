@@ -73,27 +73,22 @@
   border-radius: 8px;
 }
 
-// Tabs
-.tab-icon {
-  margin-right: 6px;
-  font-size: 18px;
-}
-
-.tab-content {
-  padding-top: 16px;
-}
-
-.single-layout {
-  max-width: 600px;
-}
-
-.messaging-layout {
+// Main layout — 2 columns
+.main-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 340px 1fr;
   gap: 16px;
+  align-items: start;
 
-  @media (max-width: 900px) {
+  @media (max-width: 960px) {
     grid-template-columns: 1fr;
+  }
+}
+
+// Customers card (left)
+.customers-card {
+  .search-field {
+    margin-bottom: 0;
   }
 }
 
@@ -101,26 +96,20 @@
   width: 100%;
 }
 
-.message-card {
-  mat-card-content {
-    padding-top: 16px;
-  }
-}
-
 .select-all {
-  padding: 12px 0;
+  padding: 8px 0;
 }
 
 .customer-list {
-  max-height: 400px;
+  max-height: 480px;
   overflow-y: auto;
 }
 
 .customer-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 4px;
+  gap: 10px;
+  padding: 6px 4px;
   cursor: pointer;
   border-radius: 4px;
   transition: background 0.15s;
@@ -133,19 +122,26 @@
 .customer-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+
+  strong {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   .phone {
     display: flex;
     align-items: center;
     gap: 4px;
     color: rgba(0, 0, 0, 0.6);
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .phone-icon {
-    font-size: 14px;
-    width: 14px;
-    height: 14px;
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
   }
 }
 
@@ -155,8 +151,60 @@
   padding: 24px 0;
 }
 
+// Message column (right)
+.message-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.message-card {
+  mat-card-content {
+    padding-top: 12px;
+  }
+}
+
+.mode-section {
+  margin-bottom: 16px;
+}
+
+.mode-label {
+  display: block;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+  margin-bottom: 8px;
+}
+
+.mode-toggle {
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-right: 4px;
+  }
+}
+
+.recipient-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 4px 14px;
+  font-size: 13px;
+  margin-bottom: 12px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: rgba(0, 0, 0, 0.54);
+  }
+}
+
+// Result
 .result-card {
-  margin-top: 16px;
+  margin-top: 0;
 }
 
 .result-summary {

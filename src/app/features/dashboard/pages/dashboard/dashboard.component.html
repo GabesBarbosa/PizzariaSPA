@@ -1,5 +1,12 @@
-<div class="dashboard">
-  <h1>Dashboard</h1>
+﻿<div class="dashboard">
+  <div class="page-header">
+    <h1>Dashboard</h1>
+    <mat-button-toggle-group [value]="selectedPeriod" (change)="onPeriodChange($event.value)" appearance="standard">
+      <mat-button-toggle value="day">Hoje</mat-button-toggle>
+      <mat-button-toggle value="week">Semana</mat-button-toggle>
+      <mat-button-toggle value="month">Mes</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
 
   <div *ngIf="loading" class="loading-wrapper">
     <mat-spinner diameter="48"></mat-spinner>
@@ -7,19 +14,19 @@
 
   <div *ngIf="error && !loading" class="error-wrapper">
     <mat-icon color="warn">error_outline</mat-icon>
-    <p>Não foi possível carregar os dados analíticos.</p>
+    <p>Nao foi possivel carregar os dados analiticos.</p>
   </div>
 
-  <ng-container *ngIf="!loading && !error">
-    <!-- 📊 KPIs rápidos -->
+  <ng-container *ngIf="!loading && !error && chartsReady">
+    <!-- KPIs Vendas -->
     <div class="kpi-grid">
       <mat-card class="kpi-card">
         <mat-card-content>
           <div class="kpi">
-            <mat-icon class="kpi-icon" style="color: #388e3c">attach_money</mat-icon>
+            <mat-icon class="kpi-icon" style="color:#388e3c">attach_money</mat-icon>
             <div>
               <div class="kpi-value">{{ formatBrl(todayRevenue) }}</div>
-              <div class="kpi-label">💰 Faturamento do Dia</div>
+              <div class="kpi-label">Faturamento do Dia</div>
             </div>
           </div>
         </mat-card-content>
@@ -27,10 +34,10 @@
       <mat-card class="kpi-card">
         <mat-card-content>
           <div class="kpi">
-            <mat-icon class="kpi-icon" style="color: #1976d2">receipt_long</mat-icon>
+            <mat-icon class="kpi-icon" style="color:#1976d2">receipt_long</mat-icon>
             <div>
               <div class="kpi-value">{{ todayOrders }}</div>
-              <div class="kpi-label">📦 Pedidos do Dia</div>
+              <div class="kpi-label">Pedidos do Dia</div>
             </div>
           </div>
         </mat-card-content>
@@ -38,10 +45,10 @@
       <mat-card class="kpi-card">
         <mat-card-content>
           <div class="kpi">
-            <mat-icon class="kpi-icon" style="color: #e53935">local_pizza</mat-icon>
+            <mat-icon class="kpi-icon" style="color:#e53935">local_pizza</mat-icon>
             <div>
               <div class="kpi-value">{{ topPizzaName }}</div>
-              <div class="kpi-label">🍕 Pizza Mais Vendida</div>
+              <div class="kpi-label">Pizza Mais Vendida</div>
             </div>
           </div>
         </mat-card-content>
@@ -49,10 +56,10 @@
       <mat-card class="kpi-card">
         <mat-card-content>
           <div class="kpi">
-            <mat-icon class="kpi-icon" style="color: #f57c00">trending_up</mat-icon>
+            <mat-icon class="kpi-icon" style="color:#f57c00">trending_up</mat-icon>
             <div>
               <div class="kpi-value">{{ formatBrl(avgTicket) }}</div>
-              <div class="kpi-label">💳 Ticket Médio</div>
+              <div class="kpi-label">Ticket Medio</div>
             </div>
           </div>
         </mat-card-content>
@@ -60,128 +67,342 @@
       <mat-card class="kpi-card">
         <mat-card-content>
           <div class="kpi">
-            <mat-icon class="kpi-icon" style="color: #7b1fa2">schedule</mat-icon>
+            <mat-icon class="kpi-icon" style="color:#7b1fa2">schedule</mat-icon>
             <div>
               <div class="kpi-value">{{ avgDeliveryTime }} min</div>
-              <div class="kpi-label">🚚 Tempo Médio Entrega</div>
+              <div class="kpi-label">Tempo Medio Entrega</div>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
     </div>
 
-    <!-- 1️⃣ Vendas por período (full width) -->
+    <!-- 1. Vendas por periodo -->
     <mat-card class="chart-card full-width-card">
       <mat-card-content>
-        <div class="chart-container-lg">
-          <canvas baseChart
-            *ngIf="salesChartData"
-            type="line"
-            [data]="salesChartData"
-            [options]="salesChartOptions">
-          </canvas>
-        </div>
+        <apx-chart
+          [series]="salesChart.series"
+          [chart]="salesChart.chart"
+          [title]="salesChart.title"
+          [xaxis]="salesChart.xaxis"
+          [yaxis]="salesChart.yaxis"
+          [stroke]="salesChart.stroke"
+          [colors]="salesChart.colors"
+          [fill]="salesChart.fill"
+          [dataLabels]="salesChart.dataLabels"
+          [grid]="salesChart.grid"
+          [tooltip]="salesChart.tooltip"
+        ></apx-chart>
       </mat-card-content>
     </mat-card>
 
-    <!-- 2️⃣ Pizzas Mais Vendidas + 4️⃣ Formas de Pagamento -->
+    <!-- 2. Pizzas + 4. Pagamento -->
     <div class="charts-row">
       <mat-card class="chart-card">
         <mat-card-content>
-          <div class="chart-container">
-            <canvas baseChart
-              *ngIf="pizzasChartData"
-              type="bar"
-              [data]="pizzasChartData"
-              [options]="pizzasChartOptions">
-            </canvas>
-          </div>
+          <apx-chart
+            [series]="pizzasChart.series"
+            [chart]="pizzasChart.chart"
+            [title]="pizzasChart.title"
+            [plotOptions]="pizzasChart.plotOptions"
+            [xaxis]="pizzasChart.xaxis"
+            [colors]="pizzasChart.colors"
+            [dataLabels]="pizzasChart.dataLabels"
+            [grid]="pizzasChart.grid"
+            [tooltip]="pizzasChart.tooltip"
+          ></apx-chart>
         </mat-card-content>
       </mat-card>
-
       <mat-card class="chart-card">
         <mat-card-content>
-          <div class="chart-container-sm">
-            <canvas baseChart
-              *ngIf="paymentChartData"
-              type="doughnut"
-              [data]="paymentChartData"
-              [options]="paymentChartOptions">
-            </canvas>
-          </div>
+          <apx-chart
+            [series]="paymentChart.series"
+            [chart]="paymentChart.chart"
+            [title]="paymentChart.title"
+            [labels]="paymentChart.labels"
+            [colors]="paymentChart.colors"
+            [legend]="paymentChart.legend"
+            [dataLabels]="paymentChart.dataLabels"
+            [tooltip]="paymentChart.tooltip"
+          ></apx-chart>
         </mat-card-content>
       </mat-card>
     </div>
 
-    <!-- 5️⃣ Pedidos por Horário + 3️⃣ Vendas por Categoria -->
+    <!-- 5. Horario + 3. Categoria -->
     <div class="charts-row">
       <mat-card class="chart-card">
         <mat-card-content>
-          <div class="chart-container">
-            <canvas baseChart
-              *ngIf="hourChartData"
-              type="bar"
-              [data]="hourChartData"
-              [options]="hourChartOptions">
-            </canvas>
-          </div>
+          <apx-chart
+            [series]="hourChart.series"
+            [chart]="hourChart.chart"
+            [title]="hourChart.title"
+            [plotOptions]="hourChart.plotOptions"
+            [xaxis]="hourChart.xaxis"
+            [colors]="hourChart.colors"
+            [dataLabels]="hourChart.dataLabels"
+            [grid]="hourChart.grid"
+            [tooltip]="hourChart.tooltip"
+          ></apx-chart>
         </mat-card-content>
       </mat-card>
-
       <mat-card class="chart-card">
         <mat-card-content>
-          <div class="chart-container-sm">
-            <canvas baseChart
-              *ngIf="categoryChartData"
-              type="doughnut"
-              [data]="categoryChartData"
-              [options]="categoryChartOptions">
-            </canvas>
-          </div>
+          <apx-chart
+            [series]="categoryChart.series"
+            [chart]="categoryChart.chart"
+            [title]="categoryChart.title"
+            [labels]="categoryChart.labels"
+            [colors]="categoryChart.colors"
+            [legend]="categoryChart.legend"
+            [dataLabels]="categoryChart.dataLabels"
+            [tooltip]="categoryChart.tooltip"
+          ></apx-chart>
         </mat-card-content>
       </mat-card>
     </div>
 
-    <!-- 6️⃣ Ticket Médio + 8️⃣ Status dos Pedidos -->
+    <!-- 6. Ticket Medio + 8. Status -->
     <div class="charts-row">
       <mat-card class="chart-card">
         <mat-card-content>
-          <div class="chart-container">
-            <canvas baseChart
-              *ngIf="ticketChartData"
-              type="line"
-              [data]="ticketChartData"
-              [options]="ticketChartOptions">
-            </canvas>
-          </div>
+          <apx-chart
+            [series]="ticketChart.series"
+            [chart]="ticketChart.chart"
+            [title]="ticketChart.title"
+            [xaxis]="ticketChart.xaxis"
+            [yaxis]="ticketChart.yaxis"
+            [stroke]="ticketChart.stroke"
+            [colors]="ticketChart.colors"
+            [fill]="ticketChart.fill"
+            [dataLabels]="ticketChart.dataLabels"
+            [grid]="ticketChart.grid"
+            [tooltip]="ticketChart.tooltip"
+          ></apx-chart>
         </mat-card-content>
       </mat-card>
-
       <mat-card class="chart-card">
         <mat-card-content>
-          <div class="chart-container">
-            <canvas baseChart
-              *ngIf="statusChartData"
-              type="bar"
-              [data]="statusChartData"
-              [options]="statusChartOptions">
-            </canvas>
-          </div>
+          <apx-chart
+            [series]="statusChart.series"
+            [chart]="statusChart.chart"
+            [title]="statusChart.title"
+            [plotOptions]="statusChart.plotOptions"
+            [xaxis]="statusChart.xaxis"
+            [colors]="statusChart.colors"
+            [legend]="statusChart.legend"
+            [dataLabels]="statusChart.dataLabels"
+            [grid]="statusChart.grid"
+            [tooltip]="statusChart.tooltip"
+          ></apx-chart>
         </mat-card-content>
       </mat-card>
     </div>
 
-    <!-- 7️⃣ Pedidos por Canal (full width) -->
+    <!-- 7. Canal -->
     <mat-card class="chart-card full-width-card">
       <mat-card-content>
-        <div class="chart-container">
-          <canvas baseChart
-            *ngIf="channelChartData"
-            type="bar"
-            [data]="channelChartData"
-            [options]="channelChartOptions">
-          </canvas>
-        </div>
+        <apx-chart
+          [series]="channelChart.series"
+          [chart]="channelChart.chart"
+          [title]="channelChart.title"
+          [plotOptions]="channelChart.plotOptions"
+          [xaxis]="channelChart.xaxis"
+          [colors]="channelChart.colors"
+          [legend]="channelChart.legend"
+          [dataLabels]="channelChart.dataLabels"
+          [grid]="channelChart.grid"
+          [tooltip]="channelChart.tooltip"
+        ></apx-chart>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ══════ CLIENTES ══════ -->
+    <h2 class="section-title">Analise de Clientes</h2>
+
+    <!-- KPIs Clientes -->
+    <div class="kpi-grid">
+      <mat-card class="kpi-card">
+        <mat-card-content>
+          <div class="kpi">
+            <mat-icon class="kpi-icon" style="color:#1976d2">people</mat-icon>
+            <div>
+              <div class="kpi-value">{{ totalCustomers }}</div>
+              <div class="kpi-label">Total de Clientes</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <mat-card-content>
+          <div class="kpi">
+            <mat-icon class="kpi-icon" style="color:#388e3c">person_add</mat-icon>
+            <div>
+              <div class="kpi-value">{{ newCustomersPeriod }}</div>
+              <div class="kpi-label">Novos no Periodo</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <mat-card-content>
+          <div class="kpi">
+            <mat-icon class="kpi-icon" style="color:#7b1fa2">loyalty</mat-icon>
+            <div>
+              <div class="kpi-value">{{ recurringCustomers }}</div>
+              <div class="kpi-label">Recorrentes</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <mat-card-content>
+          <div class="kpi">
+            <mat-icon class="kpi-icon" style="color:#e53935">trending_up</mat-icon>
+            <div>
+              <div class="kpi-value">{{ returnRate }}%</div>
+              <div class="kpi-label">Taxa de Retorno</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="kpi-card clv-card">
+        <mat-card-content>
+          <div class="kpi">
+            <mat-icon class="kpi-icon" style="color:#f57c00">monetization_on</mat-icon>
+            <div>
+              <div class="kpi-value">{{ formatBrl(avgCLV) }}</div>
+              <div class="kpi-label">CLV Medio</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- C1. Novos clientes -->
+    <mat-card class="chart-card full-width-card">
+      <mat-card-content>
+        <apx-chart
+          [series]="newByDayChart.series"
+          [chart]="newByDayChart.chart"
+          [title]="newByDayChart.title"
+          [xaxis]="newByDayChart.xaxis"
+          [yaxis]="newByDayChart.yaxis"
+          [stroke]="newByDayChart.stroke"
+          [colors]="newByDayChart.colors"
+          [fill]="newByDayChart.fill"
+          [dataLabels]="newByDayChart.dataLabels"
+          [grid]="newByDayChart.grid"
+          [tooltip]="newByDayChart.tooltip"
+        ></apx-chart>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- C2. Novos vs Recorrentes + C3. Fidelidade -->
+    <div class="charts-row">
+      <mat-card class="chart-card">
+        <mat-card-content>
+          <apx-chart
+            [series]="newVsRecurringChart.series"
+            [chart]="newVsRecurringChart.chart"
+            [title]="newVsRecurringChart.title"
+            [labels]="newVsRecurringChart.labels"
+            [colors]="newVsRecurringChart.colors"
+            [legend]="newVsRecurringChart.legend"
+            [dataLabels]="newVsRecurringChart.dataLabels"
+            [plotOptions]="newVsRecurringChart.plotOptions"
+          ></apx-chart>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="chart-card">
+        <mat-card-content>
+          <apx-chart
+            [series]="loyaltyChart.series"
+            [chart]="loyaltyChart.chart"
+            [title]="loyaltyChart.title"
+            [plotOptions]="loyaltyChart.plotOptions"
+            [xaxis]="loyaltyChart.xaxis"
+            [colors]="loyaltyChart.colors"
+            [legend]="loyaltyChart.legend"
+            [dataLabels]="loyaltyChart.dataLabels"
+            [grid]="loyaltyChart.grid"
+            [tooltip]="loyaltyChart.tooltip"
+          ></apx-chart>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- C4. Taxa de Retorno + C5. Crescimento -->
+    <div class="charts-row">
+      <mat-card class="chart-card">
+        <mat-card-content>
+          <apx-chart
+            [series]="returnRateChart.series"
+            [chart]="returnRateChart.chart"
+            [title]="returnRateChart.title"
+            [xaxis]="returnRateChart.xaxis"
+            [yaxis]="returnRateChart.yaxis"
+            [stroke]="returnRateChart.stroke"
+            [colors]="returnRateChart.colors"
+            [markers]="returnRateChart.markers"
+            [dataLabels]="returnRateChart.dataLabels"
+            [grid]="returnRateChart.grid"
+            [tooltip]="returnRateChart.tooltip"
+          ></apx-chart>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="chart-card">
+        <mat-card-content>
+          <apx-chart
+            [series]="growthChart.series"
+            [chart]="growthChart.chart"
+            [title]="growthChart.title"
+            [xaxis]="growthChart.xaxis"
+            [yaxis]="growthChart.yaxis"
+            [stroke]="growthChart.stroke"
+            [colors]="growthChart.colors"
+            [fill]="growthChart.fill"
+            [dataLabels]="growthChart.dataLabels"
+            [grid]="growthChart.grid"
+            [tooltip]="growthChart.tooltip"
+          ></apx-chart>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- C6. Top Clientes -->
+    <mat-card class="chart-card full-width-card">
+      <mat-card-content>
+        <apx-chart
+          [series]="topCustomersChart.series"
+          [chart]="topCustomersChart.chart"
+          [title]="topCustomersChart.title"
+          [plotOptions]="topCustomersChart.plotOptions"
+          [xaxis]="topCustomersChart.xaxis"
+          [colors]="topCustomersChart.colors"
+          [dataLabels]="topCustomersChart.dataLabels"
+          [grid]="topCustomersChart.grid"
+          [tooltip]="topCustomersChart.tooltip"
+        ></apx-chart>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- C7. Tempo medio entre pedidos -->
+    <mat-card class="chart-card full-width-card">
+      <mat-card-content>
+        <apx-chart
+          [series]="avgIntervalChart.series"
+          [chart]="avgIntervalChart.chart"
+          [title]="avgIntervalChart.title"
+          [xaxis]="avgIntervalChart.xaxis"
+          [yaxis]="avgIntervalChart.yaxis"
+          [stroke]="avgIntervalChart.stroke"
+          [colors]="avgIntervalChart.colors"
+          [markers]="avgIntervalChart.markers"
+          [dataLabels]="avgIntervalChart.dataLabels"
+          [grid]="avgIntervalChart.grid"
+          [tooltip]="avgIntervalChart.tooltip"
+        ></apx-chart>
       </mat-card-content>
     </mat-card>
   </ng-container>

@@ -9,14 +9,16 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatChipsModule } from '@angular/material/chips';
 
 import { Customer } from '../../../../shared/models';
 import { CustomerService } from '../../../../core/services/customer.service';
 import { WhatsappService, WhatsappStatus, BulkResult } from '../../../../core/services/whatsapp.service';
 import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
+
+type SendMode = 'selected' | 'all' | 'custom';
 
 @Component({
   selector: 'app-messaging',
@@ -25,35 +27,34 @@ import { LoadingComponent } from '../../../../shared/components/loading/loading.
     CommonModule, FormsModule,
     MatCardModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatCheckboxModule,
-    MatSnackBarModule, MatDividerModule, MatListModule,
-    MatProgressBarModule, MatTabsModule, LoadingComponent
+    MatSnackBarModule, MatDividerModule, MatProgressBarModule,
+    MatButtonToggleModule, MatChipsModule, LoadingComponent
   ],
   templateUrl: './messaging.component.html',
   styleUrl: './messaging.component.scss'
 })
 export class MessagingComponent implements OnInit {
-  // Connection status
+  // Connection
   whatsappStatus?: WhatsappStatus;
   checkingStatus = true;
 
-  // Bulk tab
+  // Data
   customers: Customer[] = [];
-  selectedIds = new Set<string>();
-  bulkMessage = '';
-  sending = false;
   loading = true;
-  result?: BulkResult;
+
+  // Selection
+  selectedIds = new Set<string>();
   selectAll = false;
+  searchTerm = '';
 
-  // Single tab
-  singlePhone = '';
-  singleMessage = '';
-  sendingSingle = false;
+  // Send mode
+  sendMode: SendMode = 'selected';
 
-  // Send all tab
-  allMessage = '';
-  sendingAll = false;
-  allResult?: BulkResult;
+  // Message
+  message = '';
+  customPhone = '';
+  sending = false;
+  result?: BulkResult;
 
   constructor(
     private customerService: CustomerService,
@@ -64,37 +65,34 @@ export class MessagingComponent implements OnInit {
   ngOnInit(): void {
     this.checkConnection();
     this.customerService.getAll().subscribe({
-      next: (customers) => {
-        this.customers = customers;
-        this.loading = false;
-      },
-      error: () => {
-        this.customers = [];
-        this.loading = false;
-      }
+      next: (c) => { this.customers = c; this.loading = false; },
+      error: () => { this.customers = []; this.loading = false; }
     });
   }
 
   checkConnection(): void {
     this.checkingStatus = true;
     this.whatsappService.getStatus().subscribe({
-      next: (status) => {
-        this.whatsappStatus = status;
-        this.checkingStatus = false;
-      },
-      error: () => {
-        this.whatsappStatus = { connected: false, qrCode: null };
-        this.checkingStatus = false;
-      }
+      next: (s) => { this.whatsappStatus = s; this.checkingStatus = false; },
+      error: () => { this.whatsappStatus = { connected: false, qrCode: null }; this.checkingStatus = false; }
     });
   }
 
-  // ── Bulk send ──
+  // ── Filtering ──
+  get filteredCustomers(): Customer[] {
+    if (!this.searchTerm.trim()) return this.customers;
+    const term = this.searchTerm.toLowerCase();
+    return this.customers.filter(c =>
+      c.name.toLowerCase().includes(term) || c.phone.includes(term)
+    );
+  }
+
+  // ── Selection ──
   toggleSelectAll(): void {
     if (this.selectAll) {
-      this.customers.forEach(c => this.selectedIds.add(c.id));
+      this.filteredCustomers.forEach(c => this.selectedIds.add(c.id));
     } else {
-      this.selectedIds.clear();
+      this.filteredCustomers.forEach(c => this.selectedIds.delete(c.id));
     }
   }
 
@@ -104,85 +102,81 @@ export class MessagingComponent implements OnInit {
     } else {
       this.selectedIds.add(id);
     }
-    this.selectAll = this.selectedIds.size === this.customers.length;
+    this.updateSelectAll();
   }
 
   isSelected(id: string): boolean {
     return this.selectedIds.has(id);
   }
 
-  get canSendBulk(): boolean {
-    return this.selectedIds.size > 0 && this.bulkMessage.trim().length > 0 && !this.sending;
+  updateSelectAll(): void {
+    const filtered = this.filteredCustomers;
+    this.selectAll = filtered.length > 0 && filtered.every(c => this.selectedIds.has(c.id));
   }
 
-  sendBulk(): void {
-    const phones = this.customers
-      .filter(c => this.selectedIds.has(c.id))
-      .map(c => c.phone);
+  // ── Send ──
+  get recipientLabel(): string {
+    switch (this.sendMode) {
+      case 'selected': return `${this.selectedIds.size} cliente(s) selecionado(s)`;
+      case 'all': return `Todos os ${this.customers.length} clientes`;
+      case 'custom': return this.customPhone.trim() || 'Número avulso';
+    }
+  }
 
-    if (phones.length === 0 || !this.bulkMessage.trim()) return;
+  get canSend(): boolean {
+    if (!this.message.trim() || this.sending) return false;
+    switch (this.sendMode) {
+      case 'selected': return this.selectedIds.size > 0;
+      case 'all': return this.customers.length > 0;
+      case 'custom': return this.customPhone.trim().length > 0;
+    }
+  }
 
+  send(): void {
+    if (!this.canSend) return;
     this.sending = true;
     this.result = undefined;
+    const msg = this.message.trim();
 
-    this.whatsappService.sendBulk(phones, this.bulkMessage.trim()).subscribe({
-      next: (result) => {
-        this.result = result;
-        this.sending = false;
-        const msg = `Enviado para ${result.success.length} de ${phones.length} clientes`;
-        this.snackBar.open(msg, 'OK', { duration: 5000 });
-      },
-      error: (err) => {
-        this.sending = false;
-        const msg = err.error?.error || 'Erro ao enviar mensagens';
-        this.snackBar.open(msg, 'OK', { duration: 5000 });
+    switch (this.sendMode) {
+      case 'selected': {
+        const phones = this.customers
+          .filter(c => this.selectedIds.has(c.id))
+          .map(c => c.phone);
+        this.whatsappService.sendBulk(phones, msg).subscribe({
+          next: (r) => this.handleResult(r, phones.length),
+          error: (e) => this.handleError(e)
+        });
+        break;
       }
-    });
-  }
-
-  // ── Single send ──
-  get canSendSingle(): boolean {
-    return this.singlePhone.trim().length > 0 && this.singleMessage.trim().length > 0 && !this.sendingSingle;
-  }
-
-  sendSingle(): void {
-    if (!this.canSendSingle) return;
-    this.sendingSingle = true;
-    this.whatsappService.send({ phone: this.singlePhone.trim(), message: this.singleMessage.trim() }).subscribe({
-      next: () => {
-        this.sendingSingle = false;
-        this.snackBar.open('Mensagem enviada com sucesso!', 'OK', { duration: 4000 });
-        this.singleMessage = '';
-      },
-      error: (err) => {
-        this.sendingSingle = false;
-        const msg = err.error?.error || 'Erro ao enviar mensagem';
-        this.snackBar.open(msg, 'OK', { duration: 5000 });
+      case 'all': {
+        this.whatsappService.sendToAll(msg).subscribe({
+          next: (r) => this.handleResult(r, r.totalCustomers || this.customers.length),
+          error: (e) => this.handleError(e)
+        });
+        break;
       }
-    });
-  }
-
-  // ── Send to all ──
-  get canSendAll(): boolean {
-    return this.allMessage.trim().length > 0 && !this.sendingAll;
-  }
-
-  sendToAll(): void {
-    if (!this.canSendAll) return;
-    this.sendingAll = true;
-    this.allResult = undefined;
-    this.whatsappService.sendToAll(this.allMessage.trim()).subscribe({
-      next: (result) => {
-        this.allResult = result;
-        this.sendingAll = false;
-        const msg = `Enviado para ${result.success.length} de ${result.totalCustomers} clientes`;
-        this.snackBar.open(msg, 'OK', { duration: 5000 });
-      },
-      error: (err) => {
-        this.sendingAll = false;
-        const msg = err.error?.error || 'Erro ao enviar mensagens';
-        this.snackBar.open(msg, 'OK', { duration: 5000 });
+      case 'custom': {
+        this.whatsappService.send({ phone: this.customPhone.trim(), message: msg }).subscribe({
+          next: () => {
+            this.sending = false;
+            this.snackBar.open('Mensagem enviada com sucesso!', 'OK', { duration: 4000 });
+          },
+          error: (e) => this.handleError(e)
+        });
+        break;
       }
-    });
+    }
+  }
+
+  private handleResult(r: BulkResult, total: number): void {
+    this.result = r;
+    this.sending = false;
+    this.snackBar.open(`Enviado para ${r.success.length} de ${total} clientes`, 'OK', { duration: 5000 });
+  }
+
+  private handleError(err: any): void {
+    this.sending = false;
+    this.snackBar.open(err.error?.error || 'Erro ao enviar mensagens', 'OK', { duration: 5000 });
   }
 }

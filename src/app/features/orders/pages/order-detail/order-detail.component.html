@@ -12,7 +12,7 @@
 
 <div *ngIf="!loading && order">
   <div class="page-header">
-    <h1>Pedido #{{ order.id | slice:0:8 }}...</h1>
+    <h1>Pedido #{{ order.id }}</h1>
     <div class="header-actions">
       <button mat-flat-button color="accent" (click)="printOrder()">
         <mat-icon>print</mat-icon> Imprimir

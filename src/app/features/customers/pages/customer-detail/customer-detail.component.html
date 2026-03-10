@@ -57,7 +57,7 @@
         <p *ngIf="orders.length === 0" class="empty-text">Nenhum pedido encontrado.</p>
         <mat-list *ngIf="orders.length > 0">
           <mat-list-item *ngFor="let order of orders" (click)="viewOrder(order)" class="order-item">
-            <span matListItemTitle>Pedido #{{ order.id | slice:0:8 }}... - {{ order.total | brl }}</span>
+            <span matListItemTitle>Pedido #{{ order.id }} - {{ order.total | brl }}</span>
             <span matListItemLine>
               {{ getStatusLabel(order.status) }} · {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}
             </span>

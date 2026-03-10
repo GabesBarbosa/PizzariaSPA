@@ -9,7 +9,7 @@ export interface DashboardStats {
 }
 
 export interface RecentOrder {
-  id: string;
+  id: number;
   customerName: string;
   total: number;
   status: string;

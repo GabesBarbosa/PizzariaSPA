@@ -3,17 +3,23 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DashboardStats } from '../../shared/models';
 
+export type DashboardPeriod = 'day' | 'week' | 'month';
+
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private readonly baseUrl = '/api/dashboard';
 
   constructor(private http: HttpClient) {}
 
-  getStats(): Observable<DashboardStats> {
-    return this.http.get<DashboardStats>(`${this.baseUrl}/stats`);
+  getStats(period: DashboardPeriod = 'week'): Observable<DashboardStats> {
+    return this.http.get<DashboardStats>(`${this.baseUrl}/stats`, { params: { period } });
   }
 
-  getAnalytics(): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/analytics`);
+  getAnalytics(period: DashboardPeriod = 'week'): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/analytics`, { params: { period } });
+  }
+
+  getCustomerAnalytics(period: DashboardPeriod = 'week'): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/customer-analytics`, { params: { period } });
   }
 }

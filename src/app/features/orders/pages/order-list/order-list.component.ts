@@ -119,7 +119,7 @@ export class OrderListComponent implements OnInit {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Excluir Pedido',
-        message: `Tem certeza que deseja excluir o pedido #${order.id.substring(0, 8)}?`
+        message: `Tem certeza que deseja excluir o pedido #${order.id}?`
       }
     });
     ref.afterClosed().subscribe(confirmed => {

@@ -44,7 +44,7 @@ export class OrderDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id')!;
+    const id = Number(this.route.snapshot.paramMap.get('id'));
     this.orderService.getById(id).subscribe({
       next: (order) => {
         this.order = order;
@@ -183,7 +183,7 @@ export class OrderDetailComponent implements OnInit {
     `;
 
     const html = `
-      <html><head><title>Pedido #${this.order.id.substring(0, 8)}</title>
+      <html><head><title>Pedido #${this.order.id}</title>
       <style>
         body { font-family: 'Courier New', monospace; max-width: 300px; margin: 0 auto; padding: 10px; font-size: 12px; }
         h2 { text-align: center; margin: 0 0 4px 0; font-size: 16px; }

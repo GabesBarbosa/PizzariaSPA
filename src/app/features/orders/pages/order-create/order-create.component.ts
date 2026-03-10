@@ -64,7 +64,7 @@ export class OrderCreateComponent implements OnInit {
   submitting = false;
 
   isEditMode = false;
-  orderId?: string;
+  orderId?: number;
   loadingOrder = false;
 
   paymentMethods = [
@@ -126,7 +126,7 @@ export class OrderCreateComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditMode = true;
-      this.orderId = id;
+      this.orderId = Number(id);
     }
   }
 

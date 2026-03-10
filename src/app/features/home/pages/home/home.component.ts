@@ -7,9 +7,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { DashboardStats } from '../../../../shared/models';
-import { DashboardService } from '../../../../core/services/dashboard.service';
+import { DashboardService, DashboardPeriod } from '../../../../core/services/dashboard.service';
 import { BrlPipe } from '../../../../shared/utils/brl.pipe';
 
 @Component({
@@ -19,7 +20,7 @@ import { BrlPipe } from '../../../../shared/utils/brl.pipe';
     CommonModule, RouterLink,
     MatCardModule, MatIconModule, MatButtonModule,
     MatTableModule, MatChipsModule, MatProgressSpinnerModule,
-    BrlPipe
+    MatButtonToggleModule, BrlPipe
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
@@ -28,13 +29,25 @@ export class HomeComponent implements OnInit {
   stats?: DashboardStats;
   loading = true;
   error = false;
+  selectedPeriod: DashboardPeriod = 'day';
   recentOrderColumns = ['customer', 'total', 'status', 'date'];
   topProductColumns = ['name', 'sold', 'revenue'];
 
   constructor(private dashboardService: DashboardService) {}
 
   ngOnInit(): void {
-    this.dashboardService.getStats().subscribe({
+    this.loadStats();
+  }
+
+  onPeriodChange(period: DashboardPeriod): void {
+    this.selectedPeriod = period;
+    this.loadStats();
+  }
+
+  private loadStats(): void {
+    this.loading = true;
+    this.error = false;
+    this.dashboardService.getStats(this.selectedPeriod).subscribe({
       next: (data) => {
         this.stats = data;
         this.loading = false;

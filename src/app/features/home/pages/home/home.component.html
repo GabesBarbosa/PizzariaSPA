@@ -1,5 +1,12 @@
 <div class="home">
-  <h1>Início</h1>
+  <div class="page-header">
+    <h1>Início</h1>
+    <mat-button-toggle-group [value]="selectedPeriod" (change)="onPeriodChange($event.value)" appearance="standard">
+      <mat-button-toggle value="day">Hoje</mat-button-toggle>
+      <mat-button-toggle value="week">Semana</mat-button-toggle>
+      <mat-button-toggle value="month">Mês</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
 
   <div *ngIf="loading" class="loading-wrapper">
     <mat-spinner diameter="48"></mat-spinner>
