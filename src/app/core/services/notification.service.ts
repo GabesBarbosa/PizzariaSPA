@@ -14,31 +14,49 @@ export interface NewOrderEvent {
 export class NotificationService implements OnDestroy {
   private eventSource: EventSource | null = null;
   private audio: HTMLAudioElement | null = null;
+  private reconnectDelay = 1000;
+  private connecting = false;
 
   readonly newOrder$ = new Subject<NewOrderEvent>();
 
   constructor(private zone: NgZone) {}
 
   connect(): void {
-    if (this.eventSource) return;
+    if (this.eventSource || this.connecting) return;
+    this.connecting = true;
 
-    const token = localStorage.getItem('token');
-    const url = `${environment.apiUrl}/notifications/stream?token=${encodeURIComponent(token || '')}`;
-    this.eventSource = new EventSource(url);
+    const token = localStorage.getItem('token') || '';
+    // Use relative URL so dev proxy handles /api routes and avoids CORS
+    const url = `/api/notifications/stream?token=${encodeURIComponent(token)}`;
 
-    this.eventSource.addEventListener('new-order', (event: any) => {
-      this.zone.run(() => {
-        const data: NewOrderEvent = JSON.parse(event.data);
-        this.newOrder$.next(data);
-        this.showAlert(data);
-        this.playSound();
+    try {
+      this.eventSource = new EventSource(url);
+
+      this.eventSource.onopen = () => {
+        console.info('[SSE] connected to', url);
+        this.connecting = false;
+        this.reconnectDelay = 1000;
+      };
+
+      this.eventSource.addEventListener('new-order', (event: any) => {
+        this.zone.run(() => {
+          const data: NewOrderEvent = JSON.parse(event.data);
+          this.newOrder$.next(data);
+          this.showAlert(data);
+          this.playSound();
+        });
       });
-    });
 
-    this.eventSource.onerror = () => {
-      this.disconnect();
-      setTimeout(() => this.connect(), 5000);
-    };
+      this.eventSource.onerror = (err: any) => {
+        console.warn('[SSE] error or closed, will reconnect', err);
+        this.disconnect();
+        setTimeout(() => this.connect(), this.reconnectDelay);
+        this.reconnectDelay = Math.min(30000, this.reconnectDelay * 2);
+      };
+    } catch (e) {
+      console.error('[SSE] failed to create EventSource', e);
+      this.connecting = false;
+    }
   }
 
   disconnect(): void {
