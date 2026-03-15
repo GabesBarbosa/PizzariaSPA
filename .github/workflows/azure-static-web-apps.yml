@@ -33,12 +33,11 @@ jobs:
         run: npm run build
 
       - name: Deploy to Azure Static Web Apps
-        uses: Azure/static-web-apps-deploy@v1.0.0
+        uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_NICE_PLANT_0A66AEE0F }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-
           app_location: "/"
           api_location: ""
           output_location: "dist/pizzaria-spa/browser"
@@ -50,7 +49,7 @@ jobs:
 
     steps:
       - name: Close Pull Request
-        uses: Azure/static-web-apps-deploy@v2
+        uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_NICE_PLANT_0A66AEE0F }}
           action: "close"
