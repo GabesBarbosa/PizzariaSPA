@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: '/api'
+  apiUrl: 'https://comandaapi-bfcwgmg0h0ecejaa.brazilsouth-01.azurewebsites.net/api'
 };
