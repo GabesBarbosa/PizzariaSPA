@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Customer } from '../../shared/models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerService {
-  private readonly baseUrl = '/api/customers';
+  private readonly baseUrl = `${environment.apiUrl}/customers`;
 
   constructor(private http: HttpClient) {}
 

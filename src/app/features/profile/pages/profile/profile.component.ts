@@ -11,6 +11,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { HttpClient } from '@angular/common/http';
 
 import { AuthService, AuthUser } from '../../../../core/services/auth.service';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-profile',
@@ -54,7 +55,7 @@ export class ProfileComponent implements OnInit {
   saveProfile(): void {
     if (!this.name || !this.email) return;
     this.saving = true;
-    this.http.put<any>('/api/auth/profile', { name: this.name, email: this.email }).subscribe({
+    this.http.put<any>(`${environment.apiUrl}/auth/profile`, { name: this.name, email: this.email }).subscribe({
       next: (res) => {
         this.saving = false;
         // Update local session
@@ -82,7 +83,7 @@ export class ProfileComponent implements OnInit {
       return;
     }
     this.savingPassword = true;
-    this.http.put<any>('/api/auth/profile', {
+    this.http.put<any>(`${environment.apiUrl}/auth/profile`, {
       currentPassword: this.currentPassword,
       newPassword: this.newPassword
     }).subscribe({

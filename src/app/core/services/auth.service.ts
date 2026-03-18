@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface AuthUser {
   id: string;
@@ -45,13 +46,13 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>('/api/auth/login', { email, password }).pipe(
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/login`, { email, password }).pipe(
       tap(res => this.setSession(res))
     );
   }
 
   register(data: RegisterPayload): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>('/api/auth/register', data).pipe(
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/register`, data).pipe(
       tap(res => this.setSession(res))
     );
   }

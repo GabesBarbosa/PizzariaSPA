@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface WhatsappStatus {
   connected: boolean;
@@ -20,7 +21,7 @@ export interface BulkResult {
 
 @Injectable({ providedIn: 'root' })
 export class WhatsappService {
-  private readonly baseUrl = '/api/whatsapp';
+  private readonly baseUrl = `${environment.apiUrl}/whatsapp`;
 
   constructor(private http: HttpClient) {}
 

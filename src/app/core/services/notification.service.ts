@@ -26,8 +26,7 @@ export class NotificationService implements OnDestroy {
     this.connecting = true;
 
     const token = localStorage.getItem('token') || '';
-    // Use relative URL so dev proxy handles /api routes and avoids CORS
-    const url = `/api/notifications/stream?token=${encodeURIComponent(token)}`;
+    const url = `${environment.apiUrl}/notifications/stream?token=${encodeURIComponent(token)}`;
 
     try {
       this.eventSource = new EventSource(url);
