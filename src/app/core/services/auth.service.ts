@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
@@ -28,13 +29,20 @@ export interface RegisterPayload {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private userSubject = new BehaviorSubject<AuthUser | null>(this.loadUser());
-  user$ = this.userSubject.asObservable();
+  private userSubject: BehaviorSubject<AuthUser | null>;
+  user$: Observable<AuthUser | null>;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: object
+  ) {
+    this.userSubject = new BehaviorSubject<AuthUser | null>(this.loadUser());
+    this.user$ = this.userSubject.asObservable();
+  }
 
   get token(): string | null {
-    return localStorage.getItem('token');
+    return isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : null;
   }
 
   get isLoggedIn(): boolean {
@@ -58,19 +66,24 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
     this.userSubject.next(null);
     this.router.navigate(['/login']);
   }
 
   private setSession(res: LoginResponse): void {
-    localStorage.setItem('token', res.token);
-    localStorage.setItem('user', JSON.stringify(res.user));
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('token', res.token);
+      localStorage.setItem('user', JSON.stringify(res.user));
+    }
     this.userSubject.next(res.user);
   }
 
   private loadUser(): AuthUser | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
     const raw = localStorage.getItem('user');
     if (!raw) return null;
     try { return JSON.parse(raw); } catch { return null; }

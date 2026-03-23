@@ -1,11 +1,13 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
-  const token = localStorage.getItem('token');
+  const platformId = inject(PLATFORM_ID);
+  const token = isPlatformBrowser(platformId) ? localStorage.getItem('token') : null;
 
   if (token) {
     req = req.clone({
@@ -16,8 +18,10 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError(err => {
       if (err.status === 401 && !req.url.includes('/api/auth/')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        if (isPlatformBrowser(platformId)) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
         router.navigate(['/login']);
       }
       return throwError(() => err);
