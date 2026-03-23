@@ -100,7 +100,7 @@ export class MessagingComponent implements OnInit, OnDestroy {
         },
         error: () => {}
       });
-    }, 3000);
+    }, 5000);
   }
 
   private stopPolling(): void {
