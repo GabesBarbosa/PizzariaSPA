@@ -1,4 +1,5 @@
-import { Injectable, NgZone, OnDestroy } from '@angular/core';
+import { Injectable, NgZone, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import Swal from 'sweetalert2';
@@ -19,9 +20,13 @@ export class NotificationService implements OnDestroy {
 
   readonly newOrder$ = new Subject<NewOrderEvent>();
 
-  constructor(private zone: NgZone) {}
+  constructor(
+    private zone: NgZone,
+    @Inject(PLATFORM_ID) private platformId: object
+  ) {}
 
   connect(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
     if (this.eventSource || this.connecting) return;
     this.connecting = true;
 
@@ -89,6 +94,7 @@ export class NotificationService implements OnDestroy {
   }
 
   private playSound(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
     try {
       if (!this.audio) {
         this.audio = new Audio();
