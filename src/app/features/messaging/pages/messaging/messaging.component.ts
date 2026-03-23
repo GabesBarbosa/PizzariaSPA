@@ -92,15 +92,20 @@ export class MessagingComponent implements OnInit, OnDestroy {
 
   private startPolling(): void {
     if (this.pollInterval) return;
+    // Só faz polling se não há QR visível (aguardando conexão após scan)
+    // Quando QR está visível, usuário precisa escanear — não há motivo para checar
+    if (this.whatsappStatus?.qrCode) return;
     this.pollInterval = setInterval(() => {
       this.whatsappService.getStatus().subscribe({
         next: (s) => {
           this.whatsappStatus = s;
           if (s.connected) this.stopPolling();
+          // Se QR apareceu, para o polling — usuário precisa escanear
+          if (s.qrCode) this.stopPolling();
         },
         error: () => {}
       });
-    }, 5000);
+    }, 10000);
   }
 
   private stopPolling(): void {
