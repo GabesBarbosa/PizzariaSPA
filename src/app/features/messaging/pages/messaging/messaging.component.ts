@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -33,10 +33,11 @@ type SendMode = 'selected' | 'all' | 'custom';
   templateUrl: './messaging.component.html',
   styleUrl: './messaging.component.scss'
 })
-export class MessagingComponent implements OnInit {
+export class MessagingComponent implements OnInit, OnDestroy {
   // Connection
   whatsappStatus?: WhatsappStatus;
   checkingStatus = true;
+  private pollInterval: any = null;
 
   // Data
   customers: Customer[] = [];
@@ -73,9 +74,44 @@ export class MessagingComponent implements OnInit {
   checkConnection(): void {
     this.checkingStatus = true;
     this.whatsappService.getStatus().subscribe({
-      next: (s) => { this.whatsappStatus = s; this.checkingStatus = false; },
-      error: () => { this.whatsappStatus = { connected: false, qrCode: null }; this.checkingStatus = false; }
+      next: (s) => {
+        this.whatsappStatus = s;
+        this.checkingStatus = false;
+        if (!s.connected) {
+          this.startPolling();
+        } else {
+          this.stopPolling();
+        }
+      },
+      error: () => {
+        this.whatsappStatus = { connected: false, qrCode: null };
+        this.checkingStatus = false;
+      }
     });
+  }
+
+  private startPolling(): void {
+    if (this.pollInterval) return;
+    this.pollInterval = setInterval(() => {
+      this.whatsappService.getStatus().subscribe({
+        next: (s) => {
+          this.whatsappStatus = s;
+          if (s.connected) this.stopPolling();
+        },
+        error: () => {}
+      });
+    }, 3000);
+  }
+
+  private stopPolling(): void {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.stopPolling();
   }
 
   // ── Filtering ──
