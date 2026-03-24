@@ -19,6 +19,7 @@ import { OrderService } from '../../../../core/services/order.service';
 import { WhatsappService } from '../../../../core/services/whatsapp.service';
 import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
 import { BrlPipe } from '../../../../shared/utils/brl.pipe';
+import { PhonePipe } from '../../../../shared/utils/phone.pipe';
 import { ORDER_STATUS_LABELS } from '../../../../shared/utils/order-status.util';
 
 @Component({
@@ -29,7 +30,7 @@ import { ORDER_STATUS_LABELS } from '../../../../shared/utils/order-status.util'
     MatCardModule, MatButtonModule, MatIconModule,
     MatListModule, MatChipsModule, MatFormFieldModule,
     MatInputModule, MatSnackBarModule, MatProgressBarModule,
-    LoadingComponent, BrlPipe
+    LoadingComponent, BrlPipe, PhonePipe
   ],
   templateUrl: './customer-detail.component.html',
   styleUrl: './customer-detail.component.scss'

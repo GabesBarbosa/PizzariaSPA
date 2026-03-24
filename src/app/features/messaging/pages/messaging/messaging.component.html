@@ -92,7 +92,7 @@
             <strong>{{ c.name }}</strong>
             <span class="phone">
               <mat-icon class="phone-icon">phone</mat-icon>
-              {{ c.phone }}
+              {{ c.phone | phone }}
             </span>
           </div>
         </div>
@@ -178,7 +178,7 @@
           <mat-divider></mat-divider>
           <h3>Falhas:</h3>
           <div *ngFor="let f of result.failed" class="failed-item">
-            <strong>{{ f.phone }}</strong>: {{ f.error }}
+            <strong>{{ f.phone | phone }}</strong>: {{ f.error }}
           </div>
         </div>
       </mat-card-content>

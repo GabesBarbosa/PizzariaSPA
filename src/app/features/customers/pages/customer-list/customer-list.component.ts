@@ -19,6 +19,7 @@ import { Customer } from '../../../../shared/models';
 import { CustomerService } from '../../../../core/services/customer.service';
 import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { PhonePipe } from '../../../../shared/utils/phone.pipe';
 
 @Component({
   selector: 'app-customer-list',
@@ -28,7 +29,7 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
     MatTableModule, MatInputModule, MatFormFieldModule,
     MatButtonModule, MatIconModule, MatPaginatorModule,
     MatCardModule, MatTooltipModule, MatSnackBarModule,
-    MatDialogModule, MatSlideToggleModule, LoadingComponent
+    MatDialogModule, MatSlideToggleModule, LoadingComponent, PhonePipe
   ],
   templateUrl: './customer-list.component.html',
   styleUrl: './customer-list.component.scss'

@@ -22,6 +22,7 @@ import { CustomerService } from '../../../../core/services/customer.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { OrderService } from '../../../../core/services/order.service';
 import { BrlPipe } from '../../../../shared/utils/brl.pipe';
+import { PhonePipe } from '../../../../shared/utils/phone.pipe';
 import { CurrencyMaskDirective } from '../../../../shared/utils/currency-mask.directive';
 
 interface CartItem {
@@ -41,7 +42,7 @@ interface CartItem {
     MatButtonModule, MatIconModule, MatAutocompleteModule,
     MatSelectModule, MatTableModule, MatDividerModule,
     MatStepperModule, MatSnackBarModule, MatChipsModule,
-    MatButtonToggleModule, BrlPipe,
+    MatButtonToggleModule, BrlPipe, PhonePipe,
     CurrencyMaskDirective
   ],
   templateUrl: './order-create.component.html',

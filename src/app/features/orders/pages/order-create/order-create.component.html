@@ -23,7 +23,7 @@
                               [displayWith]="displayCustomer"
                               (optionSelected)="selectCustomer($event.option.value)">
               <mat-option *ngFor="let c of filteredCustomers" [value]="c">
-                {{ c.name }} - {{ c.phone }}
+                {{ c.name }} - {{ c.phone | phone }}
               </mat-option>
             </mat-autocomplete>
           </mat-form-field>
@@ -32,7 +32,7 @@
             <mat-icon color="primary">check_circle</mat-icon>
             <div>
               <strong>{{ selectedCustomer.name }}</strong><br>
-              {{ selectedCustomer.phone }}
+              {{ selectedCustomer.phone | phone }}
               <span *ngIf="selectedCustomer.address"> · {{ selectedCustomer.address }}</span>
             </div>
           </div>
@@ -309,7 +309,7 @@
         <div class="confirmation-section">
           <h3>Cliente</h3>
           <p *ngIf="selectedCustomer">
-            {{ selectedCustomer.name }} · {{ selectedCustomer.phone }}
+            {{ selectedCustomer.name }} · {{ selectedCustomer.phone | phone }}
           </p>
         </div>
 

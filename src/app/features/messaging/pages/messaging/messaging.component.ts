@@ -20,6 +20,7 @@ import { WhatsappService, WhatsappStatus, BulkResult } from '../../../../core/se
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SettingsService, ChatbotMode } from '../../../../core/services/settings.service';
 import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
+import { PhonePipe } from '../../../../shared/utils/phone.pipe';
 
 type SendMode = 'selected' | 'all' | 'custom';
 
@@ -31,7 +32,7 @@ type SendMode = 'selected' | 'all' | 'custom';
     MatCardModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatCheckboxModule,
     MatSnackBarModule, MatDividerModule, MatProgressBarModule,
-    MatButtonToggleModule, MatChipsModule, LoadingComponent
+    MatButtonToggleModule, MatChipsModule, LoadingComponent, PhonePipe
   ],
   templateUrl: './messaging.component.html',
   styleUrl: './messaging.component.scss'
