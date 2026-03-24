@@ -12,10 +12,12 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatChipsModule } from '@angular/material/chips';
+import { Subscription } from 'rxjs';
 
 import { Customer } from '../../../../shared/models';
 import { CustomerService } from '../../../../core/services/customer.service';
 import { WhatsappService, WhatsappStatus, BulkResult } from '../../../../core/services/whatsapp.service';
+import { NotificationService } from '../../../../core/services/notification.service';
 import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
 
 type SendMode = 'selected' | 'all' | 'custom';
@@ -37,6 +39,7 @@ export class MessagingComponent implements OnInit, OnDestroy {
   // Connection
   whatsappStatus?: WhatsappStatus;
   checkingStatus = true;
+  private statusSub?: Subscription;
 
   // Data
   customers: Customer[] = [];
@@ -59,11 +62,20 @@ export class MessagingComponent implements OnInit, OnDestroy {
   constructor(
     private customerService: CustomerService,
     private whatsappService: WhatsappService,
+    private notificationService: NotificationService,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
+    // Busca o status atual uma única vez ao abrir a página
     this.checkConnection();
+
+    // A partir daí, o backend empurra atualizações via SSE (QR, conectado, desconectado)
+    this.statusSub = this.notificationService.whatsappStatus$.subscribe(s => {
+      this.whatsappStatus = s;
+      this.checkingStatus = false;
+    });
+
     this.customerService.getAll().subscribe({
       next: (c) => { this.customers = c; this.loading = false; },
       error: () => { this.customers = []; this.loading = false; }
@@ -84,7 +96,9 @@ export class MessagingComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this.statusSub?.unsubscribe();
+  }
 
   // ── Filtering ──
   get filteredCustomers(): Customer[] {

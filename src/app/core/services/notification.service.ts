@@ -11,6 +11,11 @@ export interface NewOrderEvent {
   itemCount: number;
 }
 
+export interface WhatsappStatusEvent {
+  connected: boolean;
+  qrCode: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class NotificationService implements OnDestroy {
   private eventSource: EventSource | null = null;
@@ -19,6 +24,7 @@ export class NotificationService implements OnDestroy {
   private connecting = false;
 
   readonly newOrder$ = new Subject<NewOrderEvent>();
+  readonly whatsappStatus$ = new Subject<WhatsappStatusEvent>();
 
   constructor(
     private zone: NgZone,
@@ -48,6 +54,12 @@ export class NotificationService implements OnDestroy {
           this.newOrder$.next(data);
           this.showAlert(data);
           this.playSound();
+        });
+      });
+
+      this.eventSource.addEventListener('whatsapp-status', (event: any) => {
+        this.zone.run(() => {
+          this.whatsappStatus$.next(JSON.parse(event.data));
         });
       });
 
