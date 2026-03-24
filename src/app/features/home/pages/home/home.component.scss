@@ -2,6 +2,40 @@
   width: 100%;
 }
 
+.settings-card {
+  margin-bottom: 24px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.settings-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  mat-icon { color: #e53935; font-size: 28px; width: 28px; height: 28px; }
+  strong   { display: block; font-size: 1rem; }
+}
+
+.settings-hint {
+  font-size: 0.8rem;
+  color: #757575;
+}
+
+.settings-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .fee-field { width: 140px; margin-bottom: -1.25em; }
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;
