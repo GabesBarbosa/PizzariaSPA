@@ -16,6 +16,34 @@
   }
 }
 
+// Chatbot mode
+.chatbot-mode-card {
+  margin-bottom: 16px;
+
+  .mode-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    .mode-info {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+
+      mat-icon { margin-top: 2px; color: #7b1fa2; }
+
+      strong { display: block; font-size: 15px; }
+
+      .mode-desc {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: #555;
+      }
+    }
+  }
+}
+
 // Connection status
 .status-card {
   margin-bottom: 16px;

@@ -3,8 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export type ChatbotMode = 'ai' | 'triggers';
+
 export interface Settings {
   deliveryFee: number;
+  chatbotMode: ChatbotMode;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -17,7 +20,11 @@ export class SettingsService {
     return this.http.get<Settings>(this.baseUrl);
   }
 
-  updateDeliveryFee(deliveryFee: number): Observable<Settings> {
-    return this.http.put<Settings>(`${this.baseUrl}/delivery-fee`, { deliveryFee });
+  updateDeliveryFee(deliveryFee: number): Observable<{ deliveryFee: number }> {
+    return this.http.put<{ deliveryFee: number }>(`${this.baseUrl}/delivery-fee`, { deliveryFee });
+  }
+
+  updateChatbotMode(mode: ChatbotMode): Observable<{ chatbotMode: ChatbotMode }> {
+    return this.http.put<{ chatbotMode: ChatbotMode }>(`${this.baseUrl}/chatbot-mode`, { mode });
   }
 }

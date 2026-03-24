@@ -18,6 +18,7 @@ import { Customer } from '../../../../shared/models';
 import { CustomerService } from '../../../../core/services/customer.service';
 import { WhatsappService, WhatsappStatus, BulkResult } from '../../../../core/services/whatsapp.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { SettingsService, ChatbotMode } from '../../../../core/services/settings.service';
 import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
 
 type SendMode = 'selected' | 'all' | 'custom';
@@ -41,6 +42,10 @@ export class MessagingComponent implements OnInit, OnDestroy {
   checkingStatus = true;
   private statusSub?: Subscription;
 
+  // Chatbot mode
+  chatbotMode: ChatbotMode = 'ai';
+  savingMode = false;
+
   // Data
   customers: Customer[] = [];
   loading = true;
@@ -63,6 +68,7 @@ export class MessagingComponent implements OnInit, OnDestroy {
     private customerService: CustomerService,
     private whatsappService: WhatsappService,
     private notificationService: NotificationService,
+    private settingsService: SettingsService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -79,6 +85,11 @@ export class MessagingComponent implements OnInit, OnDestroy {
     this.customerService.getAll().subscribe({
       next: (c) => { this.customers = c; this.loading = false; },
       error: () => { this.customers = []; this.loading = false; }
+    });
+
+    this.settingsService.getSettings().subscribe({
+      next: (s) => { this.chatbotMode = s.chatbotMode ?? 'ai'; },
+      error: () => {}
     });
   }
 
@@ -195,6 +206,23 @@ export class MessagingComponent implements OnInit, OnDestroy {
     this.result = r;
     this.sending = false;
     this.snackBar.open(`Enviado para ${r.success.length} de ${total} clientes`, 'OK', { duration: 5000 });
+  }
+
+  setChatbotMode(mode: ChatbotMode): void {
+    if (mode === this.chatbotMode || this.savingMode) return;
+    this.savingMode = true;
+    this.settingsService.updateChatbotMode(mode).subscribe({
+      next: (r) => {
+        this.chatbotMode = r.chatbotMode;
+        this.savingMode = false;
+        const label = mode === 'ai' ? 'Chatbot IA ativado' : 'Modo triggers ativado';
+        this.snackBar.open(label, 'OK', { duration: 3000 });
+      },
+      error: () => {
+        this.savingMode = false;
+        this.snackBar.open('Erro ao salvar modo do chatbot', 'OK', { duration: 3000 });
+      }
+    });
   }
 
   private handleError(err: any): void {
