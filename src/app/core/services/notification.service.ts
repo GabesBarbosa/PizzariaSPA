@@ -9,6 +9,7 @@ export interface NewOrderEvent {
   customerName: string;
   total: number;
   itemCount: number;
+  channel?: string;
 }
 
 export interface WhatsappStatusEvent {
@@ -52,8 +53,10 @@ export class NotificationService implements OnDestroy {
         this.zone.run(() => {
           const data: NewOrderEvent = JSON.parse(event.data);
           this.newOrder$.next(data);
-          this.showAlert(data);
-          this.playSound();
+          if (data.channel === 'whatsapp') {
+            this.showAlert(data);
+            this.playSound();
+          }
         });
       });
 

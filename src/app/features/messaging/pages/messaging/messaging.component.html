@@ -8,6 +8,34 @@
   </button>
 </div>
 
+<!-- Modo do Chatbot -->
+<mat-card class="chatbot-mode-card">
+  <mat-card-content>
+    <div class="mode-row">
+      <div class="mode-info">
+        <mat-icon>smart_toy</mat-icon>
+        <div>
+          <strong>Modo do Chatbot</strong>
+          <p class="mode-desc" *ngIf="chatbotMode === 'ai'">
+            🤖 <strong>IA ativa</strong> — Claude Haiku responde e processa pedidos automaticamente.
+          </p>
+          <p class="mode-desc" *ngIf="chatbotMode === 'triggers'">
+            ⚡ <strong>Chat WhatsApp</strong> — Fluxo guiado por menus, sem IA.
+          </p>
+        </div>
+      </div>
+      <mat-button-toggle-group [value]="chatbotMode" (change)="setChatbotMode($event.value)" [disabled]="savingMode">
+        <mat-button-toggle value="triggers">
+          <mat-icon>flash_on</mat-icon> Chat WhatsApp
+        </mat-button-toggle>
+        <mat-button-toggle value="ai">
+          <mat-icon>psychology</mat-icon> IA
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+  </mat-card-content>
+</mat-card>
+
 <!-- Status da conexão -->
 <mat-card class="status-card" [ngClass]="{ 'connected': whatsappStatus?.connected, 'disconnected': whatsappStatus && !whatsappStatus.connected }">
   <mat-card-content>
@@ -29,33 +57,6 @@
   </mat-card-content>
 </mat-card>
 
-<!-- Modo do Chatbot -->
-<mat-card class="chatbot-mode-card">
-  <mat-card-content>
-    <div class="mode-row">
-      <div class="mode-info">
-        <mat-icon>smart_toy</mat-icon>
-        <div>
-          <strong>Modo do Chatbot</strong>
-          <p class="mode-desc" *ngIf="chatbotMode === 'ai'">
-            🤖 <strong>IA ativa</strong> — Claude Haiku responde e processa pedidos automaticamente.
-          </p>
-          <p class="mode-desc" *ngIf="chatbotMode === 'triggers'">
-            ⚡ <strong>Apenas triggers</strong> — Somente respostas fixas (ex: cardápio). Atendimento manual para o resto.
-          </p>
-        </div>
-      </div>
-      <mat-button-toggle-group [value]="chatbotMode" (change)="setChatbotMode($event.value)" [disabled]="savingMode">
-        <mat-button-toggle value="triggers">
-          <mat-icon>flash_on</mat-icon> Triggers
-        </mat-button-toggle>
-        <mat-button-toggle value="ai">
-          <mat-icon>psychology</mat-icon> IA
-        </mat-button-toggle>
-      </mat-button-toggle-group>
-    </div>
-  </mat-card-content>
-</mat-card>
 
 <app-loading *ngIf="loading"></app-loading>
 
