@@ -202,7 +202,7 @@ export class OrderDetailComponent implements OnInit {
         .loyalty-prize { font-size: 13px; font-weight: bold; color: #e65100; margin-top: 4px; animation: pulse 1s infinite; }
         @keyframes pulse { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.05); } }
       </style></head><body>
-      <h2>🍕 Pizzatec</h2>
+      <h2>Comanda</h2>
       <p class="subtitle">${new Date(this.order.createdAt!).toLocaleString('pt-BR')}</p>
       <hr>
       <p><strong>Cliente:</strong> ${this.order.customerName || 'N/A'}</p>

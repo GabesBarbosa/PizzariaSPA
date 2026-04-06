@@ -19,9 +19,7 @@
         <th mat-header-cell *matHeaderCellDef>Categoria</th>
         <td mat-cell *matCellDef="let p">
           <span class="category-chip">
-            <mat-icon *ngIf="p.category === 'pizza'">local_pizza</mat-icon>
-            <mat-icon *ngIf="p.category === 'bebida'">local_drink</mat-icon>
-            <mat-icon *ngIf="p.category === 'outro'">restaurant</mat-icon>
+            <mat-icon>{{ getCategoryIcon(p.category) }}</mat-icon>
             {{ getCategoryLabel(p.category) }}
           </span>
         </td>

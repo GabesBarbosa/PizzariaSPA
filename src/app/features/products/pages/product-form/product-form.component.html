@@ -14,8 +14,11 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Categoria</mat-label>
         <mat-select formControlName="category">
-          <mat-option value="pizza">Pizza</mat-option>
+          <mat-option value="lanche">Lanche</mat-option>
+          <mat-option value="prato">Prato</mat-option>
           <mat-option value="bebida">Bebida</mat-option>
+          <mat-option value="sobremesa">Sobremesa</mat-option>
+          <mat-option value="porcao">Porção</mat-option>
           <mat-option value="outro">Outro</mat-option>
         </mat-select>
         <mat-error *ngIf="form.get('category')?.hasError('required')">Categoria é obrigatória</mat-error>

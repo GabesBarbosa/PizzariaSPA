@@ -16,7 +16,7 @@ import { RouterLink } from '@angular/router';
       <button mat-icon-button (click)="menuToggle.emit()" class="menu-btn">
         <mat-icon class="menu-icon" [class.open]="sidenavOpen">menu</mat-icon>
       </button>
-      <span class="brand">🍕 Pizzatec</span>
+      <span class="brand">Comanda</span>
       <span class="spacer"></span>
       <button mat-icon-button [matMenuTriggerFor]="userMenu">
         <mat-icon>account_circle</mat-icon>

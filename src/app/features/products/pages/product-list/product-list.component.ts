@@ -55,11 +55,26 @@ export class ProductListComponent implements OnInit {
 
   getCategoryLabel(category: string): string {
     const labels: Record<string, string> = {
-      pizza: 'Pizza',
+      lanche: 'Lanche',
+      prato: 'Prato',
       bebida: 'Bebida',
+      sobremesa: 'Sobremesa',
+      porcao: 'Porção',
       outro: 'Outro'
     };
     return labels[category] || category;
+  }
+
+  getCategoryIcon(category: string): string {
+    const icons: Record<string, string> = {
+      lanche: 'fastfood',
+      prato: 'restaurant',
+      bebida: 'local_drink',
+      sobremesa: 'icecream',
+      porcao: 'tapas',
+      outro: 'category'
+    };
+    return icons[category] || 'category';
   }
 
   deleteProduct(product: Product): void {
