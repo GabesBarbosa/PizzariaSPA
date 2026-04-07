@@ -37,7 +37,6 @@
             </div>
           </div>
 
-          <!-- No results + register prompt -->
           <div *ngIf="!selectedCustomer && searchPerformed && filteredCustomers.length === 0 && !showNewCustomerForm"
                class="no-results">
             <p>Nenhum cliente encontrado.</p>
@@ -46,7 +45,6 @@
             </button>
           </div>
 
-          <!-- Quick add button (always visible when not in new form) -->
           <div *ngIf="!selectedCustomer && !showNewCustomerForm && !(searchPerformed && filteredCustomers.length === 0)"
                class="quick-add">
             <button mat-button color="primary" (click)="toggleNewCustomerForm()">
@@ -54,7 +52,6 @@
             </button>
           </div>
 
-          <!-- Inline new customer form -->
           <div *ngIf="showNewCustomerForm" class="new-customer-form">
             <h3>Novo Cliente</h3>
             <form [formGroup]="newCustomerForm">
@@ -138,7 +135,6 @@
           <div *ngFor="let p of filteredProducts"
                class="product-card"
                [class.product-card--selected]="selectedProduct?.id === p.id"
-               [class.product-card--half]="halfProduct?.id === p.id"
                (click)="selectProduct(p)">
             <div class="product-card__name">{{ p.name }}</div>
             <div class="product-card__category">{{ p.category }}</div>
@@ -149,38 +145,35 @@
           </p>
         </div>
 
-        <!-- Pizza options (size + meio a meio) -->
-        <div class="pizza-options" *ngIf="selectedProduct && isPizzaCategory">
-          <div class="pizza-option-group">
-            <label>Tamanho:</label>
-            <mat-button-toggle-group [(ngModel)]="pizzaSize" [ngModelOptions]="{standalone: true}" appearance="standard">
-              <mat-button-toggle value="normal">Normal</mat-button-toggle>
-              <mat-button-toggle value="brotinho">Brotinho (35% off)</mat-button-toggle>
-            </mat-button-toggle-group>
-          </div>
-          <div class="pizza-option-group">
-            <mat-chip-listbox>
-              <mat-chip-option [selected]="meioAMeio" (click)="meioAMeio = !meioAMeio; halfProduct = undefined"
-                               color="primary">
-                <mat-icon>content_cut</mat-icon> Meio a Meio
-              </mat-chip-option>
-            </mat-chip-listbox>
-            <span *ngIf="meioAMeio && !halfProduct" class="hint">Clique no 2º sabor acima</span>
-            <span *ngIf="meioAMeio && halfProduct" class="hint hint--ok">
-              ½ {{ selectedProduct.name }} + ½ {{ halfProduct.name }}
-            </span>
+        <!-- Variations selector -->
+        <div class="variations-panel" *ngIf="selectedProduct">
+          <div *ngIf="loadingVariations" class="variation-loading">Carregando variações...</div>
+          <div *ngIf="!loadingVariations && productVariations.length > 0">
+            <p class="variations-title">Variações (opcional):</p>
+            <div class="variations-grid">
+              <div *ngFor="let v of productVariations"
+                   class="variation-chip"
+                   [class.variation-chip--selected]="isVariationSelected(v)"
+                   (click)="toggleVariation(v)">
+                <span class="variation-chip__name">{{ v.name }}</span>
+                <span class="variation-chip__price">
+                  {{ v.priceModifier === 0 ? '' : (v.priceModifier > 0 ? '+' : '') }}
+                  {{ v.priceModifier !== 0 ? (v.priceModifier | brl) : '' }}
+                </span>
+                <span class="variation-chip__type">{{ getVariationTypeLabel(v.type) }}</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Quantity + Add -->
-        <div class="add-bar" *ngIf="selectedProduct && (!meioAMeio || halfProduct)">
+        <div class="add-bar" *ngIf="selectedProduct">
           <div class="add-bar__product">
-            <strong>
-              <ng-container *ngIf="halfProduct">½ {{ selectedProduct.name }} + ½ {{ halfProduct.name }}</ng-container>
-              <ng-container *ngIf="!halfProduct">{{ selectedProduct.name }}</ng-container>
-              <span *ngIf="pizzaSize === 'brotinho' && isPizzaCategory" class="size-badge">Brotinho</span>
-            </strong>
-            <span>{{ calcItemPrice(selectedProduct, halfProduct, isPizzaCategory ? pizzaSize : 'normal') | brl }}</span>
+            <strong>{{ selectedProduct.name }}</strong>
+            <span *ngIf="selectedVariations.length > 0" class="variation-summary">
+              + {{ getVariationNames(selectedVariations) }}
+            </span>
+            <span>{{ calcCurrentPrice() | brl }}</span>
           </div>
           <mat-form-field appearance="outline" class="qty-field">
             <mat-label>Qtd</mat-label>
@@ -197,15 +190,16 @@
           <ng-container matColumnDef="product">
             <th mat-header-cell *matHeaderCellDef>Produto</th>
             <td mat-cell *matCellDef="let item">
-              <ng-container *ngIf="item.halfProduct">½ {{ item.product.name }} + ½ {{ item.halfProduct.name }}</ng-container>
-              <ng-container *ngIf="!item.halfProduct">{{ item.product.name }}</ng-container>
-              <span *ngIf="item.size === 'brotinho'" class="size-badge">Brotinho</span>
+              {{ item.product.name }}
+              <span *ngIf="item.selectedVariations.length > 0" class="cart-variations">
+                ({{ getVariationNames(item.selectedVariations) }})
+              </span>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="unitPrice">
             <th mat-header-cell *matHeaderCellDef>Preço Unit.</th>
-            <td mat-cell *matCellDef="let item">{{ calcItemPrice(item.product, item.halfProduct, item.size) | brl }}</td>
+            <td mat-cell *matCellDef="let item">{{ item.unitPrice | brl }}</td>
           </ng-container>
 
           <ng-container matColumnDef="quantity">
@@ -318,10 +312,10 @@
         <div class="confirmation-section">
           <h3>Itens</h3>
           <div *ngFor="let item of cart" class="confirmation-item">
-            {{ item.quantity }}x
-            <ng-container *ngIf="item.halfProduct">½ {{ item.product.name }} + ½ {{ item.halfProduct.name }}</ng-container>
-            <ng-container *ngIf="!item.halfProduct">{{ item.product.name }}</ng-container>
-            <span *ngIf="item.size === 'brotinho'" class="size-badge">Brotinho</span>
+            {{ item.quantity }}x {{ item.product.name }}
+            <span *ngIf="item.selectedVariations.length > 0" class="cart-variations">
+              ({{ getVariationNames(item.selectedVariations) }})
+            </span>
             - {{ item.subtotal | brl }}
           </div>
         </div>

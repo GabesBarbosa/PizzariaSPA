@@ -90,6 +90,12 @@ h3 {
   color: rgba(0, 0, 0, 0.6);
 }
 
+.item-variations {
+  font-style: italic;
+  color: rgba(0,0,0,0.5);
+  font-size: 0.85em;
+}
+
 @media (max-width: 768px) {
   .detail-grid {
     grid-template-columns: 1fr;

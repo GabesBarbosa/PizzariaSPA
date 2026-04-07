@@ -81,8 +81,8 @@ export class NavbarComponent {
   @Input() sidenavOpen = true;
   @Output() menuToggle = new EventEmitter<void>();
 
-  get tenantName(): string {
-    return this.authService.currentUser?.tenantName || 'Pizzaria';
+  get businessName(): string {
+    return this.authService.currentUser?.businessName || 'Restaurante';
   }
 
   constructor(public authService: AuthService) {}

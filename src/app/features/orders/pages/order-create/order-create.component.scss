@@ -245,51 +245,73 @@ h3 {
   color: rgba(0, 0, 0, 0.6);
 }
 
-// Pizza options
-.pizza-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-start;
+// Variations panel
+.variations-panel {
   padding: 12px 16px;
-  background: #fff3e0;
+  background: #f3e5f5;
   border-radius: 8px;
   margin-bottom: 16px;
 }
 
-.pizza-option-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+.variation-loading {
+  color: rgba(0,0,0,0.54);
+  font-size: 0.85rem;
+}
 
-  label {
+.variations-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: rgba(0,0,0,0.7);
+  margin: 0 0 10px 0;
+}
+
+.variations-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.variation-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 12px;
+  border: 2px solid rgba(0,0,0,0.12);
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fff;
+  min-width: 80px;
+  transition: border-color 0.15s, background 0.15s;
+
+  &--selected {
+    border-color: #7b1fa2;
+    background: #f3e5f5;
+  }
+
+  &__name {
     font-weight: 600;
     font-size: 0.85rem;
-    color: rgba(0, 0, 0, 0.65);
   }
-}
 
-.hint {
-  font-size: 0.8rem;
-  color: rgba(0, 0, 0, 0.45);
-  font-style: italic;
-
-  &--ok {
+  &__price {
+    font-size: 0.75rem;
     color: #388e3c;
-    font-style: normal;
     font-weight: 500;
   }
+
+  &__type {
+    font-size: 0.7rem;
+    color: rgba(0,0,0,0.45);
+  }
 }
 
-.size-badge {
-  display: inline-block;
-  background: #ff9800;
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 1px 6px;
-  border-radius: 4px;
-  margin-left: 6px;
-  vertical-align: middle;
+.variation-summary {
+  font-size: 0.8rem;
+  color: rgba(0,0,0,0.6);
+}
+
+.cart-variations {
+  font-size: 0.8rem;
+  color: rgba(0,0,0,0.54);
+  font-style: italic;
 }

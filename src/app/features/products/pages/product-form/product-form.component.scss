@@ -13,3 +13,59 @@
 .page-header {
   margin-bottom: 16px;
 }
+
+.variations-section {
+  margin-top: 24px;
+}
+
+.variation-loading {
+  padding: 16px;
+  color: rgba(0,0,0,0.54);
+}
+
+.empty-text {
+  padding: 16px 0;
+  color: rgba(0,0,0,0.54);
+}
+
+.variation-item {
+  height: auto !important;
+  padding: 8px 0;
+}
+
+.variation-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.type-chip {
+  font-size: 11px;
+}
+
+.variation-form {
+  margin-top: 16px;
+
+  h3 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    color: rgba(0,0,0,0.7);
+  }
+}
+
+.variation-form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  .variation-name { flex: 2; min-width: 160px; }
+  .variation-type { flex: 1; min-width: 120px; }
+  .variation-price { flex: 1; min-width: 120px; }
+}
+
+.variation-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}

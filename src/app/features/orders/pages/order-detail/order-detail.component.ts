@@ -33,7 +33,6 @@ export class OrderDetailComponent implements OnInit {
   order?: Order;
   loading = true;
   notFound = false;
-  customerOrderCount = 0;
   readonly statusLabels = ORDER_STATUS_LABELS;
   readonly statusFlow = ORDER_STATUS_FLOW;
 
@@ -49,12 +48,6 @@ export class OrderDetailComponent implements OnInit {
       next: (order) => {
         this.order = order;
         this.loading = false;
-        // Load customer order count for loyalty stamps (all orders count)
-        this.orderService.getByCustomer(order.customerId).subscribe({
-          next: (orders) => {
-            this.customerOrderCount = orders.length;
-          }
-        });
       },
       error: () => {
         this.notFound = true;
@@ -139,8 +132,14 @@ export class OrderDetailComponent implements OnInit {
 
     const items = this.order.items.map(i => {
       const name = i.productName || i.product?.name || 'Produto';
-      const price = i.price ?? 0;
-      return `<tr><td>${i.quantity}x ${name}</td><td style="text-align:right">${this.formatBrl(price)}</td><td style="text-align:right">${this.formatBrl(i.quantity * price)}</td></tr>`;
+      const unitPrice = i.finalPrice ?? i.unitPrice ?? i.price ?? 0;
+      const variations = (i.variations || []).map(v => v.name || '').filter(Boolean).join(', ');
+      const variationsLine = variations ? `<br><small style="color:#555">(${variations})</small>` : '';
+      return `<tr>
+        <td>${i.quantity}x ${name}${variationsLine}</td>
+        <td style="text-align:right">${this.formatBrl(unitPrice)}</td>
+        <td style="text-align:right">${this.formatBrl(i.quantity * unitPrice)}</td>
+      </tr>`;
     }).join('');
 
     const deliveryFeeRow = this.order.deliveryFee
@@ -159,29 +158,6 @@ export class OrderDetailComponent implements OnInit {
       ? `<p><strong>Obs:</strong> ${this.order.notes}</p>`
       : '';
 
-    const stampsCount = this.customerOrderCount % 10;
-    const isFull = stampsCount === 0 && this.customerOrderCount > 0;
-    const filled = isFull ? 10 : stampsCount;
-
-    let stampsHtml = '';
-    for (let i = 0; i < 10; i++) {
-      const active = i < filled;
-      stampsHtml += `<span class="stamp ${active ? 'active' : ''}">${active ? '🍕' : '⚪'}</span>`;
-    }
-
-    const loyaltyMessage = isFull
-      ? '<p class="loyalty-prize">🎉 PARABÉNS! GANHOU 1 PIZZA GRÁTIS! 🎉</p>'
-      : `<p class="loyalty-count">${filled}/10 pedidos — Faltam ${10 - filled}!</p>`;
-
-    const loyaltySection = `
-      <hr>
-      <div class="loyalty-card">
-        <p class="loyalty-title">🏆 Cartão Fidelidade</p>
-        <div class="stamps">${stampsHtml}</div>
-        ${loyaltyMessage}
-      </div>
-    `;
-
     const html = `
       <html><head><title>Pedido #${this.order.id}</title>
       <style>
@@ -193,14 +169,6 @@ export class OrderDetailComponent implements OnInit {
         td { padding: 2px 0; }
         .total { font-size: 14px; font-weight: bold; text-align: right; margin-top: 4px; }
         p { margin: 4px 0; }
-        .loyalty-card { text-align: center; padding: 8px 0; }
-        .loyalty-title { font-weight: bold; font-size: 13px; margin-bottom: 6px; }
-        .stamps { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; margin: 6px 0; }
-        .stamp { font-size: 18px; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px dashed #ccc; }
-        .stamp.active { border-color: #e65100; background: #fff3e0; }
-        .loyalty-count { font-size: 11px; color: #555; margin-top: 4px; }
-        .loyalty-prize { font-size: 13px; font-weight: bold; color: #e65100; margin-top: 4px; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.05); } }
       </style></head><body>
       <h2>Comanda</h2>
       <p class="subtitle">${new Date(this.order.createdAt!).toLocaleString('pt-BR')}</p>
@@ -217,7 +185,6 @@ export class OrderDetailComponent implements OnInit {
       </table>
       <hr>
       <p class="total">TOTAL: ${this.formatBrl(this.order.total)}</p>
-      ${loyaltySection}
       <hr>
       <p style="text-align:center;font-size:11px">Obrigado pela preferência!</p>
       </body></html>
@@ -231,6 +198,10 @@ export class OrderDetailComponent implements OnInit {
         printWindow.print();
       };
     }
+  }
+
+  getVariationNames(item: any): string {
+    return (item.variations || []).map((v: any) => v.name).filter(Boolean).join(', ');
   }
 
   private formatBrl(value: number): string {

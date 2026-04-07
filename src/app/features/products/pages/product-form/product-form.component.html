@@ -25,7 +25,7 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Preço (R$)</mat-label>
+        <mat-label>Preço Base (R$)</mat-label>
         <input matInput formControlName="price" currencyMask placeholder="R$ 0,00">
         <mat-error *ngIf="form.get('price')?.hasError('required')">Preço é obrigatório</mat-error>
         <mat-error *ngIf="form.get('price')?.hasError('min')">Preço deve ser maior que zero</mat-error>
@@ -45,3 +45,81 @@
     </form>
   </mat-card-content>
 </mat-card>
+
+<!-- Variations section (only available in edit mode) -->
+<div *ngIf="isEditMode" class="variations-section">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Variações</mat-card-title>
+      <mat-card-subtitle>Tamanhos, adicionais, remoções ou personalizações</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+
+      <!-- Existing variations -->
+      <div *ngIf="loadingVariations" class="variation-loading">Carregando...</div>
+
+      <mat-list *ngIf="!loadingVariations && variations.length > 0">
+        <mat-list-item *ngFor="let v of variations" class="variation-item">
+          <mat-icon matListItemIcon>tune</mat-icon>
+          <span matListItemTitle>{{ v.name }}</span>
+          <span matListItemLine>
+            <mat-chip color="accent" class="type-chip">{{ getVariationTypeLabel(v.type) }}</mat-chip>
+            &nbsp;{{ getPriceModifierLabel(v.priceModifier) }}
+          </span>
+          <div matListItemMeta class="variation-actions">
+            <button mat-icon-button (click)="startEditVariation(v)" [disabled]="editingVariation?.id === v.id">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteVariation(v)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </mat-list-item>
+      </mat-list>
+
+      <p *ngIf="!loadingVariations && variations.length === 0" class="empty-text">
+        Nenhuma variação cadastrada.
+      </p>
+
+      <mat-divider></mat-divider>
+
+      <!-- Add / Edit variation form -->
+      <div class="variation-form">
+        <h3>{{ editingVariation ? 'Editar Variação' : 'Adicionar Variação' }}</h3>
+        <form [formGroup]="variationForm">
+          <div class="variation-form-row">
+            <mat-form-field appearance="outline" class="variation-name">
+              <mat-label>Nome</mat-label>
+              <input matInput formControlName="name" placeholder="Ex: Grande, Bacon, Sem cebola">
+              <mat-error *ngIf="variationForm.get('name')?.hasError('required')">Nome é obrigatório</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="variation-type">
+              <mat-label>Tipo</mat-label>
+              <mat-select formControlName="type">
+                <mat-option *ngFor="let t of variationTypes" [value]="t.value">{{ t.label }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="variation-price">
+              <mat-label>Modificador (R$)</mat-label>
+              <input matInput type="number" step="0.01" formControlName="priceModifier"
+                     placeholder="0.00">
+              <mat-hint>Use negativo para descontos</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <div class="variation-form-actions">
+            <button mat-button type="button" *ngIf="editingVariation" (click)="cancelEditVariation()">Cancelar</button>
+            <button mat-flat-button color="accent" type="button"
+                    [disabled]="variationForm.invalid || savingVariation"
+                    (click)="saveVariation()">
+              {{ savingVariation ? 'Salvando...' : (editingVariation ? 'Atualizar' : 'Adicionar') }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </mat-card-content>
+  </mat-card>
+</div>

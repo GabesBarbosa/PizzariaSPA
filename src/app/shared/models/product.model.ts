@@ -1,3 +1,14 @@
+export type VariationType = 'size' | 'addon' | 'removal' | 'custom';
+
+export interface ProductVariation {
+  id: string;
+  productId: string;
+  name: string;
+  type: VariationType;
+  priceModifier: number;
+  createdAt?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -7,4 +18,5 @@ export interface Product {
   imageUrl?: string;
   active?: boolean;
   createdAt?: string;
+  variations?: ProductVariation[];
 }

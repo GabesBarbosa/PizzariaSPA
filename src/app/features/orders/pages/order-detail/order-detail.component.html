@@ -120,10 +120,14 @@
       <mat-card-content>
         <mat-list *ngIf="order.items.length > 0">
           <mat-list-item *ngFor="let item of order.items">
-            <mat-icon matListItemIcon>local_pizza</mat-icon>
+            <mat-icon matListItemIcon>restaurant</mat-icon>
             <span matListItemTitle>{{ item.productName || item.product?.name || 'Produto' }}</span>
             <span matListItemLine>
-              {{ item.quantity }}x {{ (item.price ?? 0) | brl }} = {{ item.quantity * (item.price ?? 0) | brl }}
+              {{ item.quantity }}x {{ (item.finalPrice ?? item.unitPrice ?? item.price ?? 0) | brl }}
+              = {{ item.quantity * (item.finalPrice ?? item.unitPrice ?? item.price ?? 0) | brl }}
+              <span *ngIf="item.variations && item.variations.length > 0" class="item-variations">
+                · {{ getVariationNames(item) }}
+              </span>
             </span>
           </mat-list-item>
         </mat-list>

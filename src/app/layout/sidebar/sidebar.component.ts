@@ -26,7 +26,7 @@ import { MatIconModule } from '@angular/material/icon';
         <span matListItemTitle>Clientes</span>
       </a>
       <a mat-list-item routerLink="/produtos" routerLinkActive="active-link">
-        <mat-icon matListItemIcon>local_pizza</mat-icon>
+        <mat-icon matListItemIcon>fastfood</mat-icon>
         <span matListItemTitle>Produtos</span>
       </a>
       <a mat-list-item routerLink="/mensagens" routerLinkActive="active-link">

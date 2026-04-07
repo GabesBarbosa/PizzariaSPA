@@ -11,13 +11,13 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { debounceTime, switchMap, of, forkJoin } from 'rxjs';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { debounceTime, switchMap, of } from 'rxjs';
 
-import { Customer, Product, CreateOrderDto, PaymentMethod, PizzaSize } from '../../../../shared/models';
+import { Customer, Product, ProductVariation, CreateOrderDto, PaymentMethod } from '../../../../shared/models';
 import { CustomerService } from '../../../../core/services/customer.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { OrderService } from '../../../../core/services/order.service';
@@ -28,9 +28,9 @@ import { CurrencyMaskDirective } from '../../../../shared/utils/currency-mask.di
 interface CartItem {
   product: Product;
   quantity: number;
+  unitPrice: number;
   subtotal: number;
-  size: PizzaSize;
-  halfProduct?: Product;
+  selectedVariations: ProductVariation[];
 }
 
 @Component({
@@ -42,7 +42,7 @@ interface CartItem {
     MatButtonModule, MatIconModule, MatAutocompleteModule,
     MatSelectModule, MatTableModule, MatDividerModule,
     MatStepperModule, MatSnackBarModule, MatChipsModule,
-    MatButtonToggleModule, BrlPipe, PhonePipe,
+    MatCheckboxModule, BrlPipe, PhonePipe,
     CurrencyMaskDirective
   ],
   templateUrl: './order-create.component.html',
@@ -63,10 +63,9 @@ export class OrderCreateComponent implements OnInit {
   productSearchText = '';
   selectedProduct?: Product;
   selectedQuantity = 1;
-  pizzaSize: PizzaSize = 'normal';
-  meioAMeio = false;
-  halfProduct?: Product;
-  readonly BROTINHO_MULT = 0.65;
+  productVariations: ProductVariation[] = [];
+  selectedVariationIds: Set<string> = new Set();
+  loadingVariations = false;
   cart: CartItem[] = [];
   cartColumns = ['product', 'unitPrice', 'quantity', 'subtotal', 'actions'];
   orderNotes = '';
@@ -149,19 +148,23 @@ export class OrderCreateComponent implements OnInit {
     this.loadingOrder = true;
     this.orderService.getById(this.orderId).subscribe({
       next: (order) => {
-        // Populate cart from order items
         this.cart = order.items.map(item => {
-          const product = this.products.find(p => p.id === item.productId);
-          const halfProduct = item.halfProductId ? this.products.find(p => p.id === item.halfProductId) : undefined;
-          const size = (item.size || 'normal') as PizzaSize;
-          const mainProd = product || { id: item.productId, name: item.productName || 'Produto', price: item.price || 0 } as Product;
-          const unitPrice = this.calcItemPrice(mainProd, halfProduct, size);
+          const product = this.products.find(p => p.id === item.productId)
+            || { id: item.productId, name: item.productName || 'Produto', price: item.unitPrice || item.price || 0 } as Product;
+          const unitPrice = item.unitPrice || item.price || product.price;
+          const selectedVariations: ProductVariation[] = (item.variations || []).map(v => ({
+            id: v.variationId,
+            productId: item.productId,
+            name: v.name || '',
+            type: 'custom' as const,
+            priceModifier: v.priceModifier
+          }));
           return {
-            product: mainProd,
+            product,
             quantity: item.quantity,
+            unitPrice,
             subtotal: item.quantity * unitPrice,
-            size,
-            halfProduct
+            selectedVariations
           };
         });
 
@@ -170,23 +173,16 @@ export class OrderCreateComponent implements OnInit {
         this.deliveryAddress = order.deliveryAddress || '';
         this.deliveryFee = order.deliveryFee ?? null;
 
-        // Load the customer, then advance stepper to products step
         this.customerService.getById(order.customerId).subscribe({
           next: (customer) => {
             this.selectedCustomer = customer;
             this.customerForm.get('search')!.setValue(customer, { emitEvent: false });
             this.loadingOrder = false;
-
-            // Jump to products step after data is loaded
             setTimeout(() => {
-              if (this.stepper) {
-                this.stepper.selectedIndex = 1;
-              }
+              if (this.stepper) this.stepper.selectedIndex = 1;
             });
           },
-          error: () => {
-            this.loadingOrder = false;
-          }
+          error: () => { this.loadingOrder = false; }
         });
       },
       error: () => {
@@ -213,7 +209,6 @@ export class OrderCreateComponent implements OnInit {
     this.showNewCustomerForm = !this.showNewCustomerForm;
     if (this.showNewCustomerForm) {
       this.newCustomerForm.reset();
-      // Pre-fill name from search text
       const searchVal = this.customerForm.get('search')!.value;
       if (typeof searchVal === 'string' && searchVal.length >= 2) {
         this.newCustomerForm.get('name')!.setValue(searchVal);
@@ -281,41 +276,54 @@ export class OrderCreateComponent implements OnInit {
     this.filteredProducts = result;
   }
 
-  displayProduct(product: Product): string {
-    return product ? `${product.name} (${product.category})` : '';
-  }
-
   selectProduct(product: Product): void {
-    if (this.meioAMeio && this.selectedProduct) {
-      this.halfProduct = product;
+    this.selectedProduct = product;
+    this.selectedVariationIds = new Set();
+    this.productVariations = [];
+    this.loadingVariations = true;
+    this.productService.getVariations(product.id).subscribe({
+      next: (vars) => {
+        this.productVariations = vars;
+        this.loadingVariations = false;
+      },
+      error: () => { this.loadingVariations = false; }
+    });
+  }
+
+  toggleVariation(variation: ProductVariation): void {
+    if (this.selectedVariationIds.has(variation.id)) {
+      this.selectedVariationIds.delete(variation.id);
     } else {
-      this.selectedProduct = product;
-      this.halfProduct = undefined;
+      this.selectedVariationIds.add(variation.id);
     }
+    this.selectedVariationIds = new Set(this.selectedVariationIds);
   }
 
-  get isPizzaCategory(): boolean {
-    return this.selectedCategory.startsWith('Pizza') ||
-      (!!this.selectedProduct && this.selectedProduct.category.startsWith('Pizza'));
+  isVariationSelected(variation: ProductVariation): boolean {
+    return this.selectedVariationIds.has(variation.id);
   }
 
-  calcItemPrice(product: Product, halfProd?: Product, size: PizzaSize = 'normal'): number {
-    let price = product.price;
-    if (halfProd) price = Math.max(price, halfProd.price);
-    if (size === 'brotinho') price = Math.round(price * this.BROTINHO_MULT * 100) / 100;
-    return price;
+  get selectedVariations(): ProductVariation[] {
+    return this.productVariations.filter(v => this.selectedVariationIds.has(v.id));
+  }
+
+  calcCurrentPrice(): number {
+    if (!this.selectedProduct) return 0;
+    const base = this.selectedProduct.price;
+    const modifiers = this.selectedVariations.reduce((sum, v) => sum + v.priceModifier, 0);
+    return base + modifiers;
   }
 
   addToCart(): void {
     if (!this.selectedProduct) return;
     const product = this.selectedProduct;
-    const half = this.meioAMeio ? this.halfProduct : undefined;
-    const size = this.isPizzaCategory ? this.pizzaSize : 'normal' as PizzaSize;
-    const unitPrice = this.calcItemPrice(product, half, size);
+    const variations = this.selectedVariations;
+    const unitPrice = this.calcCurrentPrice();
 
-    // for meio-a-meio or brotinho, don't merge with existing — always add new line
-    const shouldMerge = !half && size === 'normal';
-    const existingIndex = shouldMerge ? this.cart.findIndex(i => i.product.id === product.id && !i.halfProduct && i.size === 'normal') : -1;
+    const existingIndex = variations.length === 0
+      ? this.cart.findIndex(i => i.product.id === product.id && i.selectedVariations.length === 0)
+      : -1;
+
     if (existingIndex >= 0) {
       this.cart[existingIndex].quantity += this.selectedQuantity;
       this.cart[existingIndex].subtotal = this.cart[existingIndex].quantity * unitPrice;
@@ -323,19 +331,18 @@ export class OrderCreateComponent implements OnInit {
       this.cart.push({
         product,
         quantity: this.selectedQuantity,
+        unitPrice,
         subtotal: this.selectedQuantity * unitPrice,
-        size,
-        halfProduct: half
+        selectedVariations: [...variations]
       });
     }
 
     this.cart = [...this.cart];
     this.selectedProduct = undefined;
-    this.halfProduct = undefined;
+    this.productVariations = [];
+    this.selectedVariationIds = new Set();
     this.productSearchText = '';
     this.selectedQuantity = 1;
-    this.meioAMeio = false;
-    this.pizzaSize = 'normal';
     this.filterProducts();
   }
 
@@ -347,8 +354,7 @@ export class OrderCreateComponent implements OnInit {
   increaseQty(index: number): void {
     const item = this.cart[index];
     item.quantity++;
-    const unitPrice = this.calcItemPrice(item.product, item.halfProduct, item.size);
-    item.subtotal = item.quantity * unitPrice;
+    item.subtotal = item.quantity * item.unitPrice;
     this.cart = [...this.cart];
   }
 
@@ -356,8 +362,7 @@ export class OrderCreateComponent implements OnInit {
     if (this.cart[index].quantity <= 1) return;
     const item = this.cart[index];
     item.quantity--;
-    const unitPrice = this.calcItemPrice(item.product, item.halfProduct, item.size);
-    item.subtotal = item.quantity * unitPrice;
+    item.subtotal = item.quantity * item.unitPrice;
     this.cart = [...this.cart];
   }
 
@@ -373,6 +378,15 @@ export class OrderCreateComponent implements OnInit {
     return this.paymentMethods.find(p => p.value === value)?.label || value;
   }
 
+  getVariationTypeLabel(type: string): string {
+    const labels: Record<string, string> = { size: 'Tamanho', addon: 'Adicional', removal: 'Remoção', custom: 'Custom' };
+    return labels[type] || type;
+  }
+
+  getVariationNames(variations: ProductVariation[]): string {
+    return variations.map(v => v.name).join(', ');
+  }
+
   submitOrder(): void {
     if (!this.selectedCustomer || this.cart.length === 0) return;
 
@@ -383,8 +397,7 @@ export class OrderCreateComponent implements OnInit {
       items: this.cart.map(item => ({
         productId: item.product.id,
         quantity: item.quantity,
-        size: item.size !== 'normal' ? item.size : undefined,
-        halfProductId: item.halfProduct?.id || undefined
+        variations: item.selectedVariations.map(v => ({ variationId: v.id }))
       })),
       paymentMethod: this.paymentMethod || undefined,
       deliveryAddress: this.deliveryAddress || undefined,

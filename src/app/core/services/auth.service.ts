@@ -10,8 +10,8 @@ export interface AuthUser {
   name: string;
   email: string;
   role: string;
-  tenantName: string;
-  tenantSlug: string;
+  businessName: string;
+  businessSlug: string;
 }
 
 export interface LoginResponse {
@@ -23,8 +23,7 @@ export interface RegisterPayload {
   name: string;
   email: string;
   password: string;
-  tenantName: string;
-  tenantSlug: string;
+  businessName: string;
 }
 
 @Injectable({ providedIn: 'root' })

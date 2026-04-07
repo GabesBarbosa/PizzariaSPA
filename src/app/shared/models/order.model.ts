@@ -5,7 +5,11 @@ export type OrderStatus = 'RECEIVED' | 'PREPARING' | 'OUT_FOR_DELIVERY' | 'DELIV
 
 export type PaymentMethod = 'dinheiro' | 'cartao_credito' | 'cartao_debito' | 'pix';
 
-export type PizzaSize = 'normal' | 'brotinho';
+export interface OrderItemVariation {
+  variationId: string;
+  name?: string;
+  priceModifier: number;
+}
 
 export interface OrderItem {
   id?: string;
@@ -13,12 +17,10 @@ export interface OrderItem {
   product?: Product;
   productName?: string;
   quantity: number;
-  price?: number;
   unitPrice?: number;
-  subtotal?: number;
-  size?: PizzaSize;
-  halfProductId?: string;
-  halfProductName?: string;
+  finalPrice?: number;
+  price?: number;
+  variations?: OrderItemVariation[];
 }
 
 export interface Order {
@@ -38,7 +40,7 @@ export interface Order {
 
 export interface CreateOrderDto {
   customerId: string;
-  items: { productId: string; quantity: number; size?: PizzaSize; halfProductId?: string }[];
+  items: { productId: string; quantity: number; variations?: { variationId: string }[] }[];
   paymentMethod?: string;
   deliveryAddress?: string;
   notes?: string;

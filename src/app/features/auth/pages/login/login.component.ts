@@ -33,11 +33,6 @@ export class LoginComponent {
   hideLoginPassword = true;
 
   // Register
-  regName = '';
-  regEmail = '';
-  regPassword = '';
-  regTenantName = '';
-  regTenantSlug = '';
   regLoading = false;
   hideRegPassword = true;
 
@@ -76,15 +71,17 @@ export class LoginComponent {
     });
   }
 
-  onRegister(): void {
-    if (!this.regName || !this.regEmail || !this.regPassword || !this.regTenantName || !this.regTenantSlug) return;
+  onRegister(name: string, email: string, password: string, businessName: string): void {
+    if (!name.trim() || !email.trim() || !password.trim() || !businessName.trim()) {
+      this.snackBar.open('Preencha todos os campos', 'OK', { duration: 3000 });
+      return;
+    }
     this.regLoading = true;
     this.authService.register({
-      name: this.regName,
-      email: this.regEmail,
-      password: this.regPassword,
-      tenantName: this.regTenantName,
-      tenantSlug: this.regTenantSlug
+      name: name.trim(),
+      email: email.trim(),
+      password: password.trim(),
+      businessName: businessName.trim()
     }).subscribe({
       next: () => {
         this.regLoading = false;
@@ -97,11 +94,4 @@ export class LoginComponent {
     });
   }
 
-  generateSlug(): void {
-    this.regTenantSlug = this.regTenantName
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
-  }
 }

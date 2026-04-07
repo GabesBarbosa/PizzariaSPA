@@ -1,8 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Product } from '../../shared/models';
+import { Product, ProductVariation } from '../../shared/models';
 import { environment } from '../../../environments/environment';
+
+export interface CreateVariationDto {
+  name: string;
+  type: string;
+  priceModifier: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
@@ -28,5 +34,21 @@ export class ProductService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  getVariations(productId: string): Observable<ProductVariation[]> {
+    return this.http.get<ProductVariation[]>(`${this.baseUrl}/${productId}/variations`);
+  }
+
+  createVariation(productId: string, data: CreateVariationDto): Observable<ProductVariation> {
+    return this.http.post<ProductVariation>(`${this.baseUrl}/${productId}/variations`, data);
+  }
+
+  updateVariation(productId: string, variationId: string, data: Partial<CreateVariationDto>): Observable<ProductVariation> {
+    return this.http.put<ProductVariation>(`${this.baseUrl}/${productId}/variations/${variationId}`, data);
+  }
+
+  deleteVariation(productId: string, variationId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${productId}/variations/${variationId}`);
   }
 }

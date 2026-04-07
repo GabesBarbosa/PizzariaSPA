@@ -29,7 +29,7 @@ export class DashboardComponent implements OnInit {
   todayRevenue = 0;
   todayOrders = 0;
   avgTicket = 0;
-  topPizzaName = '---';
+  topProductName = '---';
   avgDeliveryTime = 0;
 
   // KPIs Clientes
@@ -100,7 +100,7 @@ export class DashboardComponent implements OnInit {
     this.todayRevenue = d.todayRevenue;
     this.todayOrders = d.todayOrders;
     this.avgTicket = d.avgTicket;
-    this.topPizzaName = d.topPizzaName;
+    this.topProductName = d.topProductName;
     this.avgDeliveryTime = d.avgDeliveryTime;
 
     const days = (d.salesByDay || []).map((r: any) =>
@@ -124,7 +124,7 @@ export class DashboardComponent implements OnInit {
     this.pizzasChart = {
       series: [{ name: 'Vendidos', data: topProducts.map((p: any) => p.totalSold || 0) }],
       chart: { type: 'bar', height: 300, toolbar: { show: false }, fontFamily: 'inherit' },
-      title: { text: 'Pizzas Mais Vendidas', style: { fontSize: '14px', fontWeight: 600 } },
+      title: { text: 'Produtos Mais Vendidos', style: { fontSize: '14px', fontWeight: 600 } },
       plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '55%' } },
       xaxis: { categories: topProducts.map((p: any) => p.name) },
       colors: ['#e53935'],

@@ -14,7 +14,7 @@
             <form (ngSubmit)="onLogin()">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>E-mail</mat-label>
-                <input matInput type="email" [(ngModel)]="loginEmail" name="email"
+                <input matInput type="email" [(ngModel)]="loginEmail" name="loginEmail"
                        placeholder="seu@email.com" required maxlength="200"
                        autocomplete="email">
                 <mat-icon matPrefix>email</mat-icon>
@@ -23,7 +23,7 @@
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Senha</mat-label>
                 <input matInput [type]="hideLoginPassword ? 'password' : 'text'"
-                       [(ngModel)]="loginPassword" name="password" required maxlength="128"
+                       [(ngModel)]="loginPassword" name="loginPassword" required maxlength="128"
                        autocomplete="current-password">
                 <mat-icon matPrefix>lock</mat-icon>
                 <button mat-icon-button matSuffix type="button"
@@ -42,13 +42,53 @@
         </mat-tab>
 
         <!-- Register Tab -->
-        <mat-tab label="Cadastrar Pizzaria">
-          <div class="tab-content disabled-tab">
-            <div class="disabled-overlay">
-              <mat-icon>lock</mat-icon>
-              <p>Funcionalidade disponível em breve.</p>
-              <p>Entre em contato com o gestor da aplicação.</p>
-            </div>
+        <mat-tab label="Cadastrar Restaurante">
+          <div class="tab-content">
+            <h3>Dados Pessoais</h3>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Seu nome</mat-label>
+              <input matInput #nameInput
+                     placeholder="Nome completo" maxlength="200"
+                     autocomplete="name">
+              <mat-icon matPrefix>person</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>E-mail</mat-label>
+              <input matInput #emailInput type="email"
+                     placeholder="seu@email.com" maxlength="200"
+                     autocomplete="email">
+              <mat-icon matPrefix>email</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Senha</mat-label>
+              <input matInput #passwordInput
+                     [type]="hideRegPassword ? 'password' : 'text'"
+                     maxlength="128" autocomplete="new-password">
+              <mat-icon matPrefix>lock</mat-icon>
+              <button mat-icon-button matSuffix type="button"
+                      (click)="hideRegPassword = !hideRegPassword">
+                <mat-icon>{{ hideRegPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </mat-form-field>
+
+            <h3>Dados do Restaurante</h3>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nome do restaurante</mat-label>
+              <input matInput #businessNameInput
+                     placeholder="Ex: Restaurante do João" maxlength="200">
+              <mat-icon matPrefix>restaurant</mat-icon>
+            </mat-form-field>
+
+            <button mat-raised-button color="primary" class="full-width submit-btn"
+                    [disabled]="regLoading"
+                    (click)="onRegister(nameInput.value, emailInput.value, passwordInput.value, businessNameInput.value)">
+              <mat-spinner diameter="20" *ngIf="regLoading"></mat-spinner>
+              <span *ngIf="!regLoading">Criar Conta</span>
+            </button>
           </div>
         </mat-tab>
       </mat-tab-group>
