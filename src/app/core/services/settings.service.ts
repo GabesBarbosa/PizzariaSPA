@@ -8,6 +8,7 @@ export type ChatbotMode = 'ai' | 'triggers';
 export interface Settings {
   deliveryFee: number;
   chatbotMode: ChatbotMode;
+  chatbotEnabled: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -26,5 +27,9 @@ export class SettingsService {
 
   updateChatbotMode(mode: ChatbotMode): Observable<{ chatbotMode: ChatbotMode }> {
     return this.http.put<{ chatbotMode: ChatbotMode }>(`${this.baseUrl}/chatbot-mode`, { mode });
+  }
+
+  updateChatbotEnabled(enabled: boolean): Observable<{ chatbotEnabled: boolean }> {
+    return this.http.put<{ chatbotEnabled: boolean }>(`${this.baseUrl}/chatbot-enabled`, { enabled });
   }
 }

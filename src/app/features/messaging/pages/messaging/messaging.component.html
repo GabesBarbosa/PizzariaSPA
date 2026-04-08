@@ -16,22 +16,34 @@
         <mat-icon>smart_toy</mat-icon>
         <div>
           <strong>Modo do Chatbot</strong>
-          <p class="mode-desc" *ngIf="chatbotMode === 'ai'">
-            🤖 <strong>IA ativa</strong> — Claude Haiku responde e processa pedidos automaticamente.
+          <p class="mode-desc" *ngIf="!chatbotEnabled">
+            Chatbot <strong>desativado</strong> — mensagens recebidas não serão respondidas automaticamente.
           </p>
-          <p class="mode-desc" *ngIf="chatbotMode === 'triggers'">
-            ⚡ <strong>Chat WhatsApp</strong> — Fluxo guiado por menus, sem IA.
+          <p class="mode-desc" *ngIf="chatbotEnabled && chatbotMode === 'ai'">
+            IA ativa — Claude Haiku responde e processa pedidos automaticamente.
+          </p>
+          <p class="mode-desc" *ngIf="chatbotEnabled && chatbotMode === 'triggers'">
+            Chat WhatsApp — Fluxo guiado por menus, sem IA.
           </p>
         </div>
       </div>
-      <mat-button-toggle-group [value]="chatbotMode" (change)="setChatbotMode($event.value)" [disabled]="savingMode">
-        <mat-button-toggle value="triggers">
-          <mat-icon>flash_on</mat-icon> Chat WhatsApp
-        </mat-button-toggle>
-        <mat-button-toggle value="ai">
-          <mat-icon>psychology</mat-icon> IA
-        </mat-button-toggle>
-      </mat-button-toggle-group>
+      <div class="mode-actions">
+        <mat-slide-toggle
+          [checked]="chatbotEnabled"
+          [disabled]="savingEnabled"
+          (change)="toggleChatbotEnabled()"
+          color="primary">
+          {{ chatbotEnabled ? 'Ativado' : 'Desativado' }}
+        </mat-slide-toggle>
+        <mat-button-toggle-group [value]="chatbotMode" (change)="setChatbotMode($event.value)" [disabled]="savingMode || !chatbotEnabled">
+          <mat-button-toggle value="triggers">
+            <mat-icon>flash_on</mat-icon> Chat WhatsApp
+          </mat-button-toggle>
+          <mat-button-toggle value="ai" [disabled]="true" matTooltip="Em breve">
+            <mat-icon>lock</mat-icon> IA
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
     </div>
   </mat-card-content>
 </mat-card>

@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatSelectModule } from '@angular/material/select';
 
 import { AuthService } from '../../../../core/services/auth.service';
 
@@ -20,7 +21,7 @@ import { AuthService } from '../../../../core/services/auth.service';
     CommonModule, FormsModule,
     MatCardModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-    MatSnackBarModule, MatTabsModule
+    MatSnackBarModule, MatTabsModule, MatSelectModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
@@ -35,6 +36,13 @@ export class LoginComponent {
   // Register
   regLoading = false;
   hideRegPassword = true;
+  regBusinessType: 'pizzaria' | 'hamburgueria' | 'generic' = 'pizzaria';
+
+  readonly businessTypes = [
+    { value: 'pizzaria',     label: 'Pizzaria' },
+    { value: 'hamburgueria', label: 'Hamburgueria' },
+    { value: 'generic',      label: 'Outro (genérico)' },
+  ];
 
   constructor(
     private authService: AuthService,
@@ -81,7 +89,8 @@ export class LoginComponent {
       name: name.trim(),
       email: email.trim(),
       password: password.trim(),
-      businessName: businessName.trim()
+      businessName: businessName.trim(),
+      businessType: this.regBusinessType,
     }).subscribe({
       next: () => {
         this.regLoading = false;
