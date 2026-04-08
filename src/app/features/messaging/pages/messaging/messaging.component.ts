@@ -12,7 +12,6 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Subscription } from 'rxjs';
 
 import { Customer } from '../../../../shared/models';
@@ -33,7 +32,7 @@ type SendMode = 'selected' | 'all' | 'custom';
     MatCardModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatCheckboxModule,
     MatSnackBarModule, MatDividerModule, MatProgressBarModule,
-    MatButtonToggleModule, MatChipsModule, MatSlideToggleModule, LoadingComponent, PhonePipe
+    MatButtonToggleModule, MatChipsModule, LoadingComponent, PhonePipe
   ],
   templateUrl: './messaging.component.html',
   styleUrl: './messaging.component.scss'
@@ -46,9 +45,7 @@ export class MessagingComponent implements OnInit, OnDestroy {
 
   // Chatbot mode
   chatbotMode: ChatbotMode = 'triggers';
-  chatbotEnabled = true;
   savingMode = false;
-  savingEnabled = false;
 
   // Data
   customers: Customer[] = [];
@@ -94,7 +91,6 @@ export class MessagingComponent implements OnInit, OnDestroy {
     this.settingsService.getSettings().subscribe({
       next: (s) => {
         this.chatbotMode = s.chatbotMode ?? 'triggers';
-        this.chatbotEnabled = s.chatbotEnabled ?? true;
       },
       error: () => {}
     });
@@ -213,24 +209,6 @@ export class MessagingComponent implements OnInit, OnDestroy {
     this.result = r;
     this.sending = false;
     this.snackBar.open(`Enviado para ${r.success.length} de ${total} clientes`, 'OK', { duration: 5000 });
-  }
-
-  toggleChatbotEnabled(): void {
-    if (this.savingEnabled) return;
-    this.savingEnabled = true;
-    const newValue = !this.chatbotEnabled;
-    this.settingsService.updateChatbotEnabled(newValue).subscribe({
-      next: (r) => {
-        this.chatbotEnabled = r.chatbotEnabled;
-        this.savingEnabled = false;
-        const label = r.chatbotEnabled ? 'Chatbot ativado' : 'Chatbot desativado';
-        this.snackBar.open(label, 'OK', { duration: 3000 });
-      },
-      error: () => {
-        this.savingEnabled = false;
-        this.snackBar.open('Erro ao salvar configuração do chatbot', 'OK', { duration: 3000 });
-      }
-    });
   }
 
   setChatbotMode(mode: ChatbotMode): void {

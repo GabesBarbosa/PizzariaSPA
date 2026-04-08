@@ -16,26 +16,16 @@
         <mat-icon>smart_toy</mat-icon>
         <div>
           <strong>Modo do Chatbot</strong>
-          <p class="mode-desc" *ngIf="!chatbotEnabled">
-            Chatbot <strong>desativado</strong> — mensagens recebidas não serão respondidas automaticamente.
-          </p>
-          <p class="mode-desc" *ngIf="chatbotEnabled && chatbotMode === 'ai'">
+          <p class="mode-desc" *ngIf="chatbotMode === 'ai'">
             IA ativa — Claude Haiku responde e processa pedidos automaticamente.
           </p>
-          <p class="mode-desc" *ngIf="chatbotEnabled && chatbotMode === 'triggers'">
+          <p class="mode-desc" *ngIf="chatbotMode === 'triggers'">
             Chat WhatsApp — Fluxo guiado por menus, sem IA.
           </p>
         </div>
       </div>
       <div class="mode-actions">
-        <mat-slide-toggle
-          [checked]="chatbotEnabled"
-          [disabled]="savingEnabled"
-          (change)="toggleChatbotEnabled()"
-          color="primary">
-          {{ chatbotEnabled ? 'Ativado' : 'Desativado' }}
-        </mat-slide-toggle>
-        <mat-button-toggle-group [value]="chatbotMode" (change)="setChatbotMode($event.value)" [disabled]="savingMode || !chatbotEnabled">
+        <mat-button-toggle-group [value]="chatbotMode" (change)="setChatbotMode($event.value)" [disabled]="savingMode">
           <mat-button-toggle value="triggers">
             <mat-icon>flash_on</mat-icon> Chat WhatsApp
           </mat-button-toggle>
