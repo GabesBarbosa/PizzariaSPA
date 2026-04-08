@@ -74,13 +74,23 @@
               </button>
             </mat-form-field>
 
-            <h3>Dados do Restaurante</h3>
+            <h3>Dados do Estabelecimento</h3>
 
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Nome do restaurante</mat-label>
+              <mat-label>Nome do estabelecimento</mat-label>
               <input matInput #businessNameInput
-                     placeholder="Ex: Restaurante do João" maxlength="200">
-              <mat-icon matPrefix>restaurant</mat-icon>
+                     placeholder="Ex: Burguer do João" maxlength="200">
+              <mat-icon matPrefix>storefront</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Tipo de estabelecimento</mat-label>
+              <mat-select [(ngModel)]="regBusinessType" name="regBusinessType">
+                <mat-option *ngFor="let t of businessTypes" [value]="t.value">
+                  {{ t.label }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>category</mat-icon>
             </mat-form-field>
 
             <button mat-raised-button color="primary" class="full-width submit-btn"
