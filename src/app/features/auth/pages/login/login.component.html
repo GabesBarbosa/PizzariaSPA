@@ -12,7 +12,7 @@
         <mat-tab label="Entrar">
           <div class="tab-content">
             <form (ngSubmit)="onLogin()">
-              <mat-form-field appearance="outline" class="full-width">
+              <mat-form-field appearance="outline" class="full-width" floatLabel="always">
                 <mat-label>E-mail</mat-label>
                 <input matInput type="email" [(ngModel)]="loginEmail" name="loginEmail"
                        placeholder="seu@email.com" required maxlength="200"
@@ -20,7 +20,7 @@
                 <mat-icon matPrefix>email</mat-icon>
               </mat-form-field>
 
-              <mat-form-field appearance="outline" class="full-width">
+              <mat-form-field appearance="outline" class="full-width" floatLabel="always">
                 <mat-label>Senha</mat-label>
                 <input matInput [type]="hideLoginPassword ? 'password' : 'text'"
                        [(ngModel)]="loginPassword" name="loginPassword" required maxlength="128"
@@ -46,7 +46,7 @@
           <div class="tab-content">
             <h3>Dados Pessoais</h3>
 
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="full-width" floatLabel="always">
               <mat-label>Seu nome</mat-label>
               <input matInput #nameInput
                      placeholder="Nome completo" maxlength="200"
@@ -54,7 +54,7 @@
               <mat-icon matPrefix>person</mat-icon>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="full-width" floatLabel="always">
               <mat-label>E-mail</mat-label>
               <input matInput #emailInput type="email"
                      placeholder="seu@email.com" maxlength="200"
@@ -62,7 +62,7 @@
               <mat-icon matPrefix>email</mat-icon>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="full-width" floatLabel="always">
               <mat-label>Senha</mat-label>
               <input matInput #passwordInput
                      [type]="hideRegPassword ? 'password' : 'text'"
@@ -76,14 +76,14 @@
 
             <h3>Dados do Estabelecimento</h3>
 
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="full-width" floatLabel="always">
               <mat-label>Nome do estabelecimento</mat-label>
               <input matInput #businessNameInput
                      placeholder="Ex: Burguer do João" maxlength="200">
               <mat-icon matPrefix>storefront</mat-icon>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="full-width" floatLabel="always">
               <mat-label>Tipo de estabelecimento</mat-label>
               <mat-select [(ngModel)]="regBusinessType" name="regBusinessType">
                 <mat-option *ngFor="let t of businessTypes" [value]="t.value">
