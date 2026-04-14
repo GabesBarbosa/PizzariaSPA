@@ -83,16 +83,6 @@
               <mat-icon matPrefix>storefront</mat-icon>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-              <mat-label>Tipo de estabelecimento</mat-label>
-              <mat-select [(ngModel)]="regBusinessType" name="regBusinessType">
-                <mat-option *ngFor="let t of businessTypes" [value]="t.value">
-                  {{ t.label }}
-                </mat-option>
-              </mat-select>
-              <mat-icon matPrefix>category</mat-icon>
-            </mat-form-field>
-
             <button mat-raised-button color="primary" class="full-width submit-btn"
                     [disabled]="regLoading"
                     (click)="onRegister(nameInput.value, emailInput.value, passwordInput.value, businessNameInput.value)">

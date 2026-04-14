@@ -24,7 +24,6 @@ export interface RegisterPayload {
   email: string;
   password: string;
   businessName: string;
-  businessType: 'pizzaria' | 'hamburgueria' | 'generic';
 }
 
 @Injectable({ providedIn: 'root' })

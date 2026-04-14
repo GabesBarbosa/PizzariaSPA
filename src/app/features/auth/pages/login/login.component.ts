@@ -36,13 +36,6 @@ export class LoginComponent {
   // Register
   regLoading = false;
   hideRegPassword = true;
-  regBusinessType: 'pizzaria' | 'hamburgueria' | 'generic' = 'pizzaria';
-
-  readonly businessTypes = [
-    { value: 'pizzaria',     label: 'Pizzaria' },
-    { value: 'hamburgueria', label: 'Hamburgueria' },
-    { value: 'generic',      label: 'Outro (genérico)' },
-  ];
 
   constructor(
     private authService: AuthService,
@@ -90,7 +83,6 @@ export class LoginComponent {
       email: email.trim(),
       password: password.trim(),
       businessName: businessName.trim(),
-      businessType: this.regBusinessType,
     }).subscribe({
       next: () => {
         this.regLoading = false;
