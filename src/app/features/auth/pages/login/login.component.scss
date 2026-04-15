@@ -17,11 +17,10 @@
   margin-bottom: 24px;
   color: #fff;
 
-  .logo-icon {
-    font-size: 64px;
-    width: 64px;
-    height: 64px;
-    color: #ffca28;
+  .logo-img {
+    width: 200px;
+    height: auto;
+    object-fit: contain;
   }
 
   h1 {
