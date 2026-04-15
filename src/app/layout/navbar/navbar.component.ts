@@ -12,11 +12,11 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [CommonModule, RouterLink, MatToolbarModule, MatIconModule, MatButtonModule, MatMenuModule],
   template: `
-    <mat-toolbar color="primary" class="navbar">
+    <mat-toolbar class="navbar">
       <button mat-icon-button (click)="menuToggle.emit()" class="menu-btn">
         <mat-icon class="menu-icon" [class.open]="sidenavOpen">menu</mat-icon>
       </button>
-      <span class="brand">Comanda</span>
+      <img src="assets/dashfoodSEMfundo.png" alt="dashfood" class="brand-logo">
       <span class="spacer"></span>
       <button mat-icon-button [matMenuTriggerFor]="userMenu">
         <mat-icon>account_circle</mat-icon>
@@ -44,11 +44,14 @@ import { RouterLink } from '@angular/router';
       left: 0;
       right: 0;
       z-index: 1000;
+      background-color: #0f172a !important;
+      color: #fff;
     }
-    .brand {
+    .brand-logo {
+      height: 120px;
+      width: auto;
       margin-left: 8px;
-      font-size: 1.2rem;
-      font-weight: 500;
+      object-fit: contain;
     }
     .spacer {
       flex: 1 1 auto;
