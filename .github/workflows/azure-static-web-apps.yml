@@ -26,17 +26,11 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies (SPA and API)
-        run: |
-          cd PizzariaSPA
-          npm install
-          cd ../PizzariaAPI
-          npm install
+      - name: Install dependencies
+        run: npm install
 
       - name: Build SPA
-        run: |
-          cd PizzariaSPA
-          npm run build
+        run: npm run build
 
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
@@ -44,9 +38,8 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_NICE_PLANT_0A66AEE0F }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "PizzariaSPA"
-          api_location: "PizzariaAPI/api"
-          output_location: "PizzariaSPA/dist/pizzaria-spa"
+          app_location: "/"
+          output_location: "dist/pizzaria-spa"
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
