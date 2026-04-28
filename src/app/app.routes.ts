@@ -9,6 +9,11 @@ export const routes: Routes = [
       import('./features/auth/pages/login/login.component').then(m => m.LoginComponent)
   },
   {
+    path: 'c',
+    loadChildren: () =>
+      import('./features/public-shop/public-shop.routes').then(m => m.PUBLIC_SHOP_ROUTES)
+  },
+  {
     path: '',
     component: LayoutComponent,
     canActivate: [authGuard],
@@ -48,6 +53,11 @@ export const routes: Routes = [
         path: 'perfil',
         loadComponent: () =>
           import('./features/profile/pages/profile/profile.component').then(m => m.ProfileComponent)
+      },
+      {
+        path: 'entrega',
+        loadComponent: () =>
+          import('./features/delivery-settings/pages/delivery-settings/delivery-settings.component').then(m => m.DeliverySettingsComponent)
       }
     ]
   },

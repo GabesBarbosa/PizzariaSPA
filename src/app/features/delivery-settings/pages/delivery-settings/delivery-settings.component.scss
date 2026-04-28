@@ -1,0 +1,47 @@
+.delivery-settings {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  h1 {
+    margin: 0 0 8px;
+  }
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  .row-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .origin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .zones-table {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .add-zone {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 12px;
+    margin-top: 16px;
+    align-items: center;
+  }
+
+  .save-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+  }
+}

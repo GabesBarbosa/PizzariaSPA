@@ -16,6 +16,7 @@ export interface Product {
   price: number;
   category: string;
   imageUrl?: string;
+  imageBase64?: string | null;
   active?: boolean;
   createdAt?: string;
   variations?: ProductVariation[];

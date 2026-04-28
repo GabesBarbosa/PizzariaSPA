@@ -7,9 +7,10 @@ import { catchError, throwError } from 'rxjs';
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
+  const isPublic = req.url.includes('/api/public/');
   const token = isPlatformBrowser(platformId) ? localStorage.getItem('token') : null;
 
-  if (token) {
+  if (token && !isPublic) {
     req = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` }
     });
@@ -17,7 +18,7 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError(err => {
-      if (err.status === 401 && !req.url.includes('/api/auth/')) {
+      if (err.status === 401 && !isPublic && !req.url.includes('/api/auth/')) {
         if (isPlatformBrowser(platformId)) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');

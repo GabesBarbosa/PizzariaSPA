@@ -36,6 +36,25 @@
         <textarea matInput formControlName="description" rows="3" placeholder="Descrição do produto"></textarea>
       </mat-form-field>
 
+      <!-- Foto do produto -->
+      <div class="image-upload-wrap">
+        <p class="image-label">Foto do produto <span class="muted">(opcional, máx. 2MB)</span></p>
+        @if (imagePreview) {
+          <div class="image-preview-wrap">
+            <img [src]="imagePreview" alt="Preview" class="image-preview">
+            <button mat-icon-button type="button" class="remove-img-btn" (click)="removeImage()" title="Remover foto">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        } @else {
+          <label class="image-upload-area">
+            <mat-icon>add_photo_alternate</mat-icon>
+            <span>Clique para adicionar foto</span>
+            <input type="file" accept="image/*" (change)="onImageSelected($event)" hidden>
+          </label>
+        }
+      </div>
+
       <div class="form-actions">
         <a mat-button routerLink="/produtos">Cancelar</a>
         <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || saving">

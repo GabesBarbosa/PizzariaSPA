@@ -43,6 +43,8 @@ export class ProductFormComponent implements OnInit {
   savingVariation = false;
   editingVariation: ProductVariation | null = null;
 
+  imagePreview: string | null = null;
+
   readonly variationTypes = [
     { value: 'size', label: 'Tamanho' },
     { value: 'addon', label: 'Adicional' },
@@ -63,7 +65,8 @@ export class ProductFormComponent implements OnInit {
       name: ['', Validators.required],
       category: ['lanche', Validators.required],
       price: [null, [Validators.required, Validators.min(0.01)]],
-      description: ['']
+      description: [''],
+      imageBase64: [null as string | null]
     });
 
     this.variationForm = this.fb.group({
@@ -81,8 +84,10 @@ export class ProductFormComponent implements OnInit {
             name: product.name,
             category: product.category,
             price: product.price,
-            description: product.description || ''
+            description: product.description || '',
+            imageBase64: product.imageBase64 || null
           });
+          this.imagePreview = product.imageBase64 || null;
         },
         error: () => {
           this.snackBar.open('Erro ao carregar produto', 'OK', { duration: 3000 });
@@ -179,6 +184,27 @@ export class ProductFormComponent implements OnInit {
         this.snackBar.open('Erro ao remover variação', 'OK', { duration: 3000 });
       }
     });
+  }
+
+  onImageSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      this.snackBar.open('Imagem muito grande. Máximo 2MB.', 'OK', { duration: 3000 });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      this.imagePreview = base64;
+      this.form.patchValue({ imageBase64: base64 });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeImage(): void {
+    this.imagePreview = null;
+    this.form.patchValue({ imageBase64: null });
   }
 
   getVariationTypeLabel(type: string): string {

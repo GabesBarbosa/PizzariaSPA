@@ -33,6 +33,10 @@ import { MatIconModule } from '@angular/material/icon';
         <mat-icon matListItemIcon>chat</mat-icon>
         <span matListItemTitle>WhatsApp</span>
       </a>
+      <a mat-list-item routerLink="/entrega" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>delivery_dining</mat-icon>
+        <span matListItemTitle>Entrega</span>
+      </a>
     </mat-nav-list>
   `,
   styles: [`

@@ -1,0 +1,118 @@
+<div class="delivery-settings">
+  <h1>Configuração de Entrega</h1>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Endereço da loja (origem)</mat-card-title>
+      <mat-card-subtitle>Usado como ponto de partida para calcular a distância até o cliente.</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      @if (loadingOrigin()) {
+        <mat-spinner diameter="24"></mat-spinner>
+      } @else {
+        <form [formGroup]="originForm" class="origin-form">
+          <mat-form-field appearance="outline">
+            <mat-label>CEP</mat-label>
+            <input matInput formControlName="cep" (input)="formatCep()" (blur)="onCepBlur()">
+            @if (cepLookingUp()) {
+              <mat-spinner matSuffix diameter="18"></mat-spinner>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Rua</mat-label>
+            <input matInput formControlName="street">
+          </mat-form-field>
+
+          <div class="row-two">
+            <mat-form-field appearance="outline">
+              <mat-label>Número</mat-label>
+              <input matInput formControlName="number">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Complemento</mat-label>
+              <input matInput formControlName="complement">
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Bairro</mat-label>
+            <input matInput formControlName="neighborhood">
+          </mat-form-field>
+
+          <div class="row-two">
+            <mat-form-field appearance="outline">
+              <mat-label>Cidade</mat-label>
+              <input matInput formControlName="city">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>UF</mat-label>
+              <input matInput formControlName="uf" maxlength="2">
+            </mat-form-field>
+          </div>
+
+          <button mat-flat-button color="primary" type="button" (click)="saveOrigin()" [disabled]="savingOrigin()">
+            @if (savingOrigin()) { <mat-spinner diameter="18"></mat-spinner> } @else { <span>Salvar endereço</span> }
+          </button>
+        </form>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Faixas de frete por distância</mat-card-title>
+      <mat-card-subtitle>O frete cobrado é definido pela faixa onde cair a distância de rota até o cliente.</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      @if (loadingZones()) {
+        <mat-spinner diameter="24"></mat-spinner>
+      } @else {
+        <table mat-table [dataSource]="zones()" class="zones-table">
+          <ng-container matColumnDef="range">
+            <th mat-header-cell *matHeaderCellDef>Faixa (km)</th>
+            <td mat-cell *matCellDef="let z">{{ z.minKm }} — {{ z.maxKm }}</td>
+          </ng-container>
+          <ng-container matColumnDef="fee">
+            <th mat-header-cell *matHeaderCellDef>Frete</th>
+            <td mat-cell *matCellDef="let z">{{ z.fee | brl }}</td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let z; let i = index">
+              <button mat-icon-button color="warn" (click)="removeZone(i)"><mat-icon>delete</mat-icon></button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['range', 'fee', 'actions']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['range', 'fee', 'actions']"></tr>
+        </table>
+
+        <mat-divider></mat-divider>
+
+        <div class="add-zone">
+          <mat-form-field appearance="outline">
+            <mat-label>min km</mat-label>
+            <input matInput type="number" [(ngModel)]="newZone.minKm">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>max km</mat-label>
+            <input matInput type="number" [(ngModel)]="newZone.maxKm">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Frete (R$)</mat-label>
+            <input matInput type="number" step="0.01" [(ngModel)]="newZone.fee">
+          </mat-form-field>
+          <button mat-stroked-button type="button" (click)="addZone()">
+            <mat-icon>add</mat-icon> Adicionar
+          </button>
+        </div>
+
+        <div class="save-row">
+          <button mat-flat-button color="primary" type="button" (click)="saveZones()" [disabled]="savingZones()">
+            @if (savingZones()) { <mat-spinner diameter="18"></mat-spinner> } @else { <span>Salvar faixas</span> }
+          </button>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -11,6 +11,24 @@ export interface Settings {
   chatbotEnabled: boolean;
 }
 
+export interface BusinessOrigin {
+  cep: string;
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  uf: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface DeliveryZone {
+  minKm: number;
+  maxKm: number;
+  fee: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
   private readonly baseUrl = `${environment.apiUrl}/settings`;
@@ -31,5 +49,21 @@ export class SettingsService {
 
   updateChatbotEnabled(enabled: boolean): Observable<{ chatbotEnabled: boolean }> {
     return this.http.put<{ chatbotEnabled: boolean }>(`${this.baseUrl}/chatbot-enabled`, { enabled });
+  }
+
+  getOrigin(): Observable<{ origin: BusinessOrigin | null }> {
+    return this.http.get<{ origin: BusinessOrigin | null }>(`${this.baseUrl}/business-origin`);
+  }
+
+  saveOrigin(payload: Partial<BusinessOrigin>): Observable<{ origin: BusinessOrigin }> {
+    return this.http.put<{ origin: BusinessOrigin }>(`${this.baseUrl}/business-origin`, payload);
+  }
+
+  getZones(): Observable<{ zones: DeliveryZone[] }> {
+    return this.http.get<{ zones: DeliveryZone[] }>(`${this.baseUrl}/delivery-zones`);
+  }
+
+  saveZones(zones: DeliveryZone[]): Observable<{ zones: DeliveryZone[] }> {
+    return this.http.put<{ zones: DeliveryZone[] }>(`${this.baseUrl}/delivery-zones`, { zones });
   }
 }

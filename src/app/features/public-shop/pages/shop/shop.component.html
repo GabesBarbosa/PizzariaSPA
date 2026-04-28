@@ -1,0 +1,278 @@
+<div class="shop-root">
+
+  <!-- ─── LOADING ─── -->
+  @if (loading()) {
+    <div class="full-screen-state">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Carregando cardápio...</p>
+    </div>
+  }
+
+  @else if (!business()) {
+    <div class="full-screen-state">
+      <mat-icon class="state-icon warn">storefront</mat-icon>
+      <h2>Estabelecimento não encontrado</h2>
+      <p>Verifique o link e tente novamente.</p>
+    </div>
+  }
+
+  @else {
+
+    <!-- ─── HEADER ─── -->
+    <header class="shop-header">
+      <div class="shop-header-inner">
+        <div class="shop-logo-wrap">
+          <img src="assets/dashfoodSEMfundo.png" alt="DashFood" class="shop-logo-img">
+        </div>
+        <div class="shop-header-info">
+          <h1>{{ business()!.name }}</h1>
+          @if (business()!.originCity) {
+            <span class="shop-header-city">
+              <mat-icon>place</mat-icon>{{ business()!.originCity }}
+            </span>
+          }
+        </div>
+      </div>
+
+      @if (stage() === 'menu' && cartCount() > 0) {
+        <button mat-fab extended color="primary" class="cart-fab" (click)="goToCheckout()">
+          <mat-icon>shopping_cart</mat-icon>
+          <span class="cart-fab-label">
+            {{ cartCount() }} {{ cartCount() === 1 ? 'item' : 'itens' }} &nbsp;·&nbsp; {{ cartSubtotal() | brl }}
+          </span>
+        </button>
+      }
+    </header>
+
+    <!-- ═══════════════════════════════════════════════ MENU ═══ -->
+    @if (stage() === 'menu') {
+
+      <!-- Mais pedidos -->
+      @if (topProducts().length > 0) {
+        <section class="section-top">
+          <h2 class="section-title">
+            <mat-icon>trending_up</mat-icon> Mais pedidos
+          </h2>
+          <div class="top-scroll">
+            @for (p of topProducts(); track p.id) {
+              <div class="top-card" (click)="addToCart(p)">
+                <div class="top-card-img">
+                  @if (p.imageBase64) {
+                    <img [src]="p.imageBase64" [alt]="p.name">
+                  } @else {
+                    <mat-icon class="no-img-icon">fastfood</mat-icon>
+                  }
+                </div>
+                <div class="top-card-info">
+                  <span class="top-card-name">{{ p.name }}</span>
+                  <span class="top-card-price">{{ p.price | brl }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Categorias -->
+      @if (categories().length > 1) {
+        <div class="category-bar">
+          @for (cat of categories(); track cat) {
+            <button class="cat-btn" [class.active]="activeCategory() === cat" (click)="activeCategory.set(cat)">
+              {{ cat }}
+            </button>
+          }
+        </div>
+      }
+
+      <!-- Grid de produtos -->
+      <section class="menu-section">
+        @for (product of menuByCategory()[activeCategory()] || []; track product.id) {
+          <div class="product-card">
+            <div class="product-img-wrap">
+              @if (product.imageBase64) {
+                <img class="product-img" [src]="product.imageBase64" [alt]="product.name">
+              } @else {
+                <div class="product-img-placeholder">
+                  <mat-icon>fastfood</mat-icon>
+                </div>
+              }
+            </div>
+            <div class="product-body">
+              <div class="product-info">
+                <h3 class="product-name">{{ product.name }}</h3>
+                @if (product.description) {
+                  <p class="product-desc">{{ product.description }}</p>
+                }
+                <strong class="product-price">{{ product.price | brl }}</strong>
+              </div>
+              <button class="add-btn" (click)="addToCart(product)">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+
+    } <!-- /menu -->
+
+    <!-- ═══════════════════════════════════════════ CHECKOUT ═══ -->
+    @if (stage() === 'checkout') {
+      <section class="checkout-section">
+
+        <button mat-button class="back-btn" (click)="backToMenu()">
+          <mat-icon>arrow_back</mat-icon> Voltar ao cardápio
+        </button>
+
+        <!-- Resumo do pedido -->
+        <div class="checkout-card">
+          <div class="checkout-card-title">Seu pedido</div>
+
+          @for (item of cart(); track item.product.id; let i = $index) {
+            <div class="cart-item">
+              <div class="cart-item-img">
+                @if (item.product.imageBase64) {
+                  <img [src]="item.product.imageBase64" [alt]="item.product.name">
+                } @else {
+                  <mat-icon>fastfood</mat-icon>
+                }
+              </div>
+              <div class="cart-item-info">
+                <span class="cart-item-name">{{ item.product.name }}</span>
+                <span class="cart-item-unit">{{ item.product.price | brl }} cada</span>
+              </div>
+              <div class="cart-item-qty">
+                <button mat-icon-button (click)="changeQty(i, -1)"><mat-icon>remove</mat-icon></button>
+                <span>{{ item.quantity }}</span>
+                <button mat-icon-button (click)="changeQty(i, 1)"><mat-icon>add</mat-icon></button>
+              </div>
+              <strong class="cart-item-total">{{ item.quantity * item.product.price | brl }}</strong>
+            </div>
+          }
+
+          <mat-divider></mat-divider>
+
+          <div class="totals">
+            <div class="totals-row">
+              <span>Subtotal</span><span>{{ cartSubtotal() | brl }}</span>
+            </div>
+            <div class="totals-row">
+              <span>Entrega</span>
+              @if (shippingLoading()) {
+                <mat-spinner diameter="16"></mat-spinner>
+              } @else if (shippingFee() !== null) {
+                <span>{{ shippingFee()! | brl }} @if (shippingKm()) {<small>({{ shippingKm() }} km)</small>}</span>
+              } @else {
+                <span class="muted">—</span>
+              }
+            </div>
+            <div class="totals-row total-highlight">
+              <strong>Total</strong><strong>{{ orderTotal() | brl }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulário -->
+        <form [formGroup]="form" (ngSubmit)="submit()">
+
+          <div class="checkout-card">
+            <div class="checkout-card-title">Seus dados</div>
+            <mat-form-field appearance="outline">
+              <mat-label>Nome completo</mat-label>
+              <input matInput formControlName="name">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Telefone (WhatsApp)</mat-label>
+              <input matInput formControlName="phone" (input)="formatPhone()">
+            </mat-form-field>
+          </div>
+
+          <div class="checkout-card">
+            <div class="checkout-card-title">Endereço de entrega</div>
+            <mat-form-field appearance="outline">
+              <mat-label>CEP</mat-label>
+              <input matInput formControlName="cep" (input)="formatCep()" (blur)="onCepBlur()">
+              @if (cepLoading()) { <mat-spinner matSuffix diameter="18"></mat-spinner> }
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Rua</mat-label>
+              <input matInput formControlName="street" readonly>
+            </mat-form-field>
+            <div class="row-two">
+              <mat-form-field appearance="outline">
+                <mat-label>Número</mat-label>
+                <input matInput formControlName="number" (blur)="onNumberBlur()">
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Complemento</mat-label>
+                <input matInput formControlName="complement">
+              </mat-form-field>
+            </div>
+            <div class="row-two">
+              <mat-form-field appearance="outline">
+                <mat-label>Bairro</mat-label>
+                <input matInput formControlName="neighborhood" readonly>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Cidade / UF</mat-label>
+                <input matInput [value]="(form.value.city || '') + (form.value.uf ? '/' + form.value.uf : '')" readonly>
+              </mat-form-field>
+            </div>
+            @if (shippingError()) {
+              <div class="shipping-error">
+                <mat-icon>error_outline</mat-icon> {{ shippingError() }}
+              </div>
+            }
+          </div>
+
+          <div class="checkout-card">
+            <div class="checkout-card-title">Pagamento</div>
+            <mat-form-field appearance="outline">
+              <mat-label>Forma de pagamento (na entrega)</mat-label>
+              <mat-select formControlName="paymentMethod">
+                @for (pm of paymentMethods(); track pm.key) {
+                  <mat-option [value]="pm.label">{{ pm.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            @if (isCashPayment()) {
+              <mat-form-field appearance="outline">
+                <mat-label>Troco para (opcional)</mat-label>
+                <span matTextPrefix>R$&nbsp;</span>
+                <input matInput type="number" formControlName="changeFor" placeholder="Ex: 100">
+              </mat-form-field>
+            }
+            <mat-form-field appearance="outline">
+              <mat-label>Observações (opcional)</mat-label>
+              <textarea matInput formControlName="notes" rows="2"></textarea>
+            </mat-form-field>
+          </div>
+
+          <button mat-flat-button color="primary" type="submit" class="submit-btn" [disabled]="submitting()">
+            @if (submitting()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              <span>Finalizar pedido — {{ orderTotal() | brl }}</span>
+            }
+          </button>
+
+        </form>
+      </section>
+    } <!-- /checkout -->
+
+    <!-- ══════════════════════════════════════════════ SUCCESS ═══ -->
+    @if (stage() === 'success') {
+      <div class="success-screen">
+        <div class="success-icon-wrap">
+          <mat-icon class="success-icon">check_circle</mat-icon>
+        </div>
+        <h2>Pedido enviado!</h2>
+        <p>Seu pedido <strong>#{{ finishedOrderId() }}</strong> foi recebido por <strong>{{ business()!.name }}</strong>.</p>
+        <p class="muted">Aguarde a confirmação pelo WhatsApp.</p>
+        <button mat-stroked-button color="primary" (click)="stage.set('menu'); cart.set([])">
+          <mat-icon>restaurant_menu</mat-icon> Novo pedido
+        </button>
+      </div>
+    }
+
+  } <!-- /else business -->
+</div>

@@ -53,10 +53,8 @@ export class NotificationService implements OnDestroy {
         this.zone.run(() => {
           const data: NewOrderEvent = JSON.parse(event.data);
           this.newOrder$.next(data);
-          if (data.channel === 'whatsapp') {
-            this.showAlert(data);
-            this.playSound();
-          }
+          this.showAlert(data);
+          this.playSound();
         });
       });
 
@@ -89,8 +87,9 @@ export class NotificationService implements OnDestroy {
 
   private showAlert(order: NewOrderEvent): void {
     const brl = order.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const title = order.channel === 'whatsapp' ? '🍴 Novo Pedido via WhatsApp!' : '🛒 Novo Pedido via Cardápio!';
     Swal.fire({
-      title: '🍕 Novo Pedido via WhatsApp!',
+      title,
       html: `
         <div style="text-align:left; font-size:15px; line-height:1.8">
           <b>Pedido #${order.id}</b><br>
