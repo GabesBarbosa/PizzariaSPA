@@ -8,30 +8,6 @@
     </mat-button-toggle-group>
   </div>
 
-  <!-- Configurações rápidas -->
-  <mat-card class="settings-card">
-    <mat-card-content>
-      <div class="settings-row">
-        <div class="settings-label">
-          <mat-icon>delivery_dining</mat-icon>
-          <div>
-            <strong>Taxa de Entrega</strong>
-            <span class="settings-hint">Cobrada em pedidos com entrega. Retirada no local é sempre isenta.</span>
-          </div>
-        </div>
-        <div class="settings-control">
-          <mat-form-field appearance="outline" class="fee-field">
-            <mat-label>Valor (R$)</mat-label>
-            <input matInput type="number" min="0" step="0.50" [(ngModel)]="deliveryFeeInput">
-            <span matPrefix>R$&nbsp;</span>
-          </mat-form-field>
-          <button mat-flat-button color="primary" (click)="saveDeliveryFee()" [disabled]="savingFee">
-            <mat-icon>save</mat-icon> Salvar
-          </button>
-        </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
 
   <div *ngIf="loading" class="loading-wrapper">
     <mat-spinner diameter="48"></mat-spinner>
