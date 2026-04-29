@@ -119,6 +119,10 @@ export class PublicShopService {
     return this.http.post<PublicCustomerDto>(`${this.base}/${slug}/customers`, payload);
   }
 
+  getCustomerByToken(slug: string, token: string): Observable<PublicCustomerDto> {
+    return this.http.get<PublicCustomerDto>(`${this.base}/${slug}/customers?token=${encodeURIComponent(token)}`);
+  }
+
   getTopProducts(slug: string): Observable<PublicProductDto[]> {
     return this.http.get<PublicProductDto[]>(`${this.base}/${slug}/top-products`);
   }

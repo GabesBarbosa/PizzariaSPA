@@ -82,6 +82,7 @@ export class ShopComponent implements OnInit {
 
   ngOnInit(): void {
     this.slug = this.route.snapshot.paramMap.get('slug') || '';
+    const tokenParam = this.route.snapshot.queryParamMap.get('token') || '';
 
     this.form = this.fb.group({
       name:       ['', [Validators.required, Validators.minLength(3)]],
@@ -97,6 +98,25 @@ export class ShopComponent implements OnInit {
       changeFor:  [''],
       notes:      [''],
     });
+
+    if (tokenParam) {
+      this.shop.getCustomerByToken(this.slug, tokenParam).subscribe({
+        next: (customer) => {
+          this.form.patchValue({
+            name:         customer.name,
+            phone:        customer.phone,
+            cep:          customer.cep          || '',
+            street:       customer.street       || '',
+            number:       customer.number       || '',
+            complement:   customer.complement   || '',
+            neighborhood: customer.neighborhood || '',
+            city:         customer.city         || '',
+            uf:           customer.uf           || '',
+          });
+        },
+        error: () => {},
+      });
+    }
 
     this.shop.getBusiness(this.slug).subscribe({
       next: (biz) => {
