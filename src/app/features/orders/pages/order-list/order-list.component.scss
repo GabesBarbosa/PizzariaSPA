@@ -42,6 +42,18 @@
   background-color: #388e3c;
 }
 
+.table-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: #e65100;
+  color: #fff;
+  white-space: nowrap;
+}
+
 // Action buttons
 .actions-cell {
   display: flex;

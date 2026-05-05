@@ -51,6 +51,11 @@
             <span matListItemTitle>{{ getPaymentLabel(order.paymentMethod) }}</span>
             <span matListItemLine>Forma de Pagamento</span>
           </mat-list-item>
+          <mat-list-item *ngIf="order.tableNumber">
+            <mat-icon matListItemIcon>table_restaurant</mat-icon>
+            <span matListItemTitle>Mesa {{ order.tableNumber }}</span>
+            <span matListItemLine>Salão</span>
+          </mat-list-item>
           <mat-list-item *ngIf="order.deliveryAddress">
             <mat-icon matListItemIcon>location_on</mat-icon>
             <span matListItemTitle>{{ order.deliveryAddress }}</span>

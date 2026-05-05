@@ -13,6 +13,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { SettingsService, BusinessOrigin, DeliveryZone } from '../../../../core/services/settings.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { environment } from '../../../../../environments/environment';
 import { BrlPipe } from '../../../../shared/utils/brl.pipe';
 
@@ -40,23 +41,33 @@ interface ViaCepInfo {
 export class DeliverySettingsComponent implements OnInit {
   originForm!: FormGroup;
   zones = signal<DeliveryZone[]>([]);
+  tableCount = signal(0);
+  tableCountInput = 0;
+  tables = signal<number[]>([]);
 
   loadingOrigin = signal(false);
   savingOrigin = signal(false);
   cepLookingUp = signal(false);
   loadingZones = signal(false);
   savingZones = signal(false);
+  savingTables = signal(false);
 
   hasOrigin = signal(false);
 
   newZone: DeliveryZone = { minKm: 0, maxKm: 0, fee: 0 };
 
+  readonly shopBase: string;
+
   constructor(
     private fb: FormBuilder,
     private settings: SettingsService,
+    private auth: AuthService,
     private http: HttpClient,
     private snack: MatSnackBar,
-  ) {}
+  ) {
+    const slug = this.auth.currentUser?.businessSlug ?? '';
+    this.shopBase = `${window.location.origin}/c/${slug}`;
+  }
 
   ngOnInit(): void {
     this.originForm = this.fb.group({
@@ -71,6 +82,7 @@ export class DeliverySettingsComponent implements OnInit {
 
     this.loadOrigin();
     this.loadZones();
+    this.loadTables();
   }
 
   /* ─── Origin ─── */
@@ -166,6 +178,47 @@ export class DeliverySettingsComponent implements OnInit {
     const next = [...this.zones()];
     next.splice(index, 1);
     this.zones.set(next);
+  }
+
+  /* ─── Tables ─── */
+
+  private loadTables(): void {
+    this.settings.getTables().subscribe({
+      next: ({ tableCount }) => {
+        this.tableCount.set(tableCount);
+        this.tableCountInput = tableCount;
+        this.tables.set(Array.from({ length: tableCount }, (_, i) => i + 1));
+      },
+    });
+  }
+
+  saveTables(): void {
+    const count = Math.max(0, Math.min(200, Math.round(this.tableCountInput)));
+    this.savingTables.set(true);
+    this.settings.saveTables(count).subscribe({
+      next: ({ tableCount }) => {
+        this.savingTables.set(false);
+        this.tableCount.set(tableCount);
+        this.tables.set(Array.from({ length: tableCount }, (_, i) => i + 1));
+        this.snack.open('Mesas salvas!', 'OK', { duration: 3000 });
+      },
+      error: () => {
+        this.savingTables.set(false);
+        this.snack.open('Erro ao salvar mesas.', 'OK', { duration: 3000 });
+      },
+    });
+  }
+
+  tableUrl(n: number): string {
+    return `${this.shopBase}?table=${n}`;
+  }
+
+  qrUrl(n: number): string {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(this.tableUrl(n))}`;
+  }
+
+  printTables(): void {
+    window.print();
   }
 
   saveZones(): void {

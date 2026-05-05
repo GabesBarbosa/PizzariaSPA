@@ -79,6 +79,7 @@ export interface CreatePublicOrderDto {
   deliveryAddress?: string;
   deliveryFee?: number;
   notes?: string;
+  tableNumber?: number;
 }
 
 export interface CreatedOrderDto {

@@ -21,7 +21,10 @@
 
       <ng-container matColumnDef="customer">
         <th mat-header-cell *matHeaderCellDef>Cliente</th>
-        <td mat-cell *matCellDef="let o">{{ o.customerName || '—' }}</td>
+        <td mat-cell *matCellDef="let o">
+          {{ o.customerName || '—' }}
+          <span *ngIf="o.tableNumber" class="table-badge">Mesa {{ o.tableNumber }}</span>
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="total">

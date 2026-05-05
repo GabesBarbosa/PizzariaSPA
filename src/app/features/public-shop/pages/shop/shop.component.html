@@ -26,7 +26,11 @@
         </div>
         <div class="shop-header-info">
           <h1>{{ business()!.name }}</h1>
-          @if (business()!.originCity) {
+          @if (tableNumber()) {
+            <span class="table-badge-header">
+              <mat-icon>table_restaurant</mat-icon> Mesa {{ tableNumber() }}
+            </span>
+          } @else if (business()!.originCity) {
             <span class="shop-header-city">
               <mat-icon>place</mat-icon>{{ business()!.originCity }}
             </span>
@@ -155,16 +159,18 @@
             <div class="totals-row">
               <span>Subtotal</span><span>{{ cartSubtotal() | brl }}</span>
             </div>
-            <div class="totals-row">
-              <span>Entrega</span>
-              @if (shippingLoading()) {
-                <mat-spinner diameter="16"></mat-spinner>
-              } @else if (shippingFee() !== null) {
-                <span>{{ shippingFee()! | brl }} @if (shippingKm()) {<small>({{ shippingKm() }} km)</small>}</span>
-              } @else {
-                <span class="muted">—</span>
-              }
-            </div>
+            @if (!tableNumber()) {
+              <div class="totals-row">
+                <span>Entrega</span>
+                @if (shippingLoading()) {
+                  <mat-spinner diameter="16"></mat-spinner>
+                } @else if (shippingFee() !== null) {
+                  <span>{{ shippingFee()! | brl }} @if (shippingKm()) {<small>({{ shippingKm() }} km)</small>}</span>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </div>
+            }
             <div class="totals-row total-highlight">
               <strong>Total</strong><strong>{{ orderTotal() | brl }}</strong>
             </div>
@@ -174,55 +180,69 @@
         <!-- Formulário -->
         <form [formGroup]="form" (ngSubmit)="submit()">
 
+          @if (tableNumber()) {
+            <div class="checkout-card table-info-card">
+              <mat-icon>table_restaurant</mat-icon>
+              <div>
+                <div class="table-info-title">Mesa {{ tableNumber() }}</div>
+                <div class="table-info-sub">O pedido será entregue na sua mesa.</div>
+              </div>
+            </div>
+          }
+
           <div class="checkout-card">
             <div class="checkout-card-title">Seus dados</div>
             <mat-form-field appearance="outline">
-              <mat-label>Nome completo</mat-label>
+              <mat-label>Nome{{ tableNumber() ? ' (opcional)' : '' }}</mat-label>
               <input matInput formControlName="name">
             </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Telefone (WhatsApp)</mat-label>
-              <input matInput formControlName="phone" (input)="formatPhone()">
-            </mat-form-field>
-          </div>
-
-          <div class="checkout-card">
-            <div class="checkout-card-title">Endereço de entrega</div>
-            <mat-form-field appearance="outline">
-              <mat-label>CEP</mat-label>
-              <input matInput formControlName="cep" (input)="formatCep()" (blur)="onCepBlur()">
-              @if (cepLoading()) { <mat-spinner matSuffix diameter="18"></mat-spinner> }
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Rua</mat-label>
-              <input matInput formControlName="street" readonly>
-            </mat-form-field>
-            <div class="row-two">
+            @if (!tableNumber()) {
               <mat-form-field appearance="outline">
-                <mat-label>Número</mat-label>
-                <input matInput formControlName="number" (blur)="onNumberBlur()">
+                <mat-label>Telefone (WhatsApp)</mat-label>
+                <input matInput formControlName="phone" (input)="formatPhone()">
               </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Complemento</mat-label>
-                <input matInput formControlName="complement">
-              </mat-form-field>
-            </div>
-            <div class="row-two">
-              <mat-form-field appearance="outline">
-                <mat-label>Bairro</mat-label>
-                <input matInput formControlName="neighborhood" readonly>
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Cidade / UF</mat-label>
-                <input matInput [value]="(form.value.city || '') + (form.value.uf ? '/' + form.value.uf : '')" readonly>
-              </mat-form-field>
-            </div>
-            @if (shippingError()) {
-              <div class="shipping-error">
-                <mat-icon>error_outline</mat-icon> {{ shippingError() }}
-              </div>
             }
           </div>
+
+          @if (!tableNumber()) {
+            <div class="checkout-card">
+              <div class="checkout-card-title">Endereço de entrega</div>
+              <mat-form-field appearance="outline">
+                <mat-label>CEP</mat-label>
+                <input matInput formControlName="cep" (input)="formatCep()" (blur)="onCepBlur()">
+                @if (cepLoading()) { <mat-spinner matSuffix diameter="18"></mat-spinner> }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Rua</mat-label>
+                <input matInput formControlName="street" readonly>
+              </mat-form-field>
+              <div class="row-two">
+                <mat-form-field appearance="outline">
+                  <mat-label>Número</mat-label>
+                  <input matInput formControlName="number" (blur)="onNumberBlur()">
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Complemento</mat-label>
+                  <input matInput formControlName="complement">
+                </mat-form-field>
+              </div>
+              <div class="row-two">
+                <mat-form-field appearance="outline">
+                  <mat-label>Bairro</mat-label>
+                  <input matInput formControlName="neighborhood" readonly>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Cidade / UF</mat-label>
+                  <input matInput [value]="(form.value.city || '') + (form.value.uf ? '/' + form.value.uf : '')" readonly>
+                </mat-form-field>
+              </div>
+              @if (shippingError()) {
+                <div class="shipping-error">
+                  <mat-icon>error_outline</mat-icon> {{ shippingError() }}
+                </div>
+              }
+            </div>
+          }
 
           <div class="checkout-card">
             <div class="checkout-card-title">Pagamento</div>

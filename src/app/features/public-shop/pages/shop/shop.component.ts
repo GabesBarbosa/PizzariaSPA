@@ -46,6 +46,7 @@ type Stage = 'menu' | 'checkout' | 'success';
 })
 export class ShopComponent implements OnInit {
   slug = '';
+  tableNumber = signal<number | null>(null);
   stage = signal<Stage>('menu');
   loading = signal(true);
   submitting = signal(false);
@@ -83,13 +84,20 @@ export class ShopComponent implements OnInit {
   ngOnInit(): void {
     this.slug = this.route.snapshot.paramMap.get('slug') || '';
     const tokenParam = this.route.snapshot.queryParamMap.get('token') || '';
+    const tableParam = this.route.snapshot.queryParamMap.get('table');
+    if (tableParam) {
+      const n = parseInt(tableParam, 10);
+      if (!isNaN(n) && n > 0) this.tableNumber.set(n);
+    }
+
+    const isTable = this.tableNumber() !== null;
 
     this.form = this.fb.group({
-      name:       ['', [Validators.required, Validators.minLength(3)]],
-      phone:      ['', [Validators.required]],
-      cep:        ['', [Validators.required]],
+      name:       ['', isTable ? [Validators.minLength(3)] : [Validators.required, Validators.minLength(3)]],
+      phone:      ['', isTable ? [] : [Validators.required]],
+      cep:        ['', isTable ? [] : [Validators.required]],
       street:     [''],
-      number:     ['', [Validators.required]],
+      number:     ['', isTable ? [] : [Validators.required]],
       complement: [''],
       neighborhood: [''],
       city:       [''],
@@ -259,7 +267,8 @@ export class ShopComponent implements OnInit {
       this.snack.open('Preencha todos os campos obrigatórios.', 'OK', { duration: 3000 });
       return;
     }
-    if (this.shippingFee() === null) {
+    const isTable = this.tableNumber() !== null;
+    if (!isTable && this.shippingFee() === null) {
       this.snack.open('Aguarde o cálculo do frete ou revise o endereço.', 'OK', { duration: 3000 });
       return;
     }
@@ -268,12 +277,14 @@ export class ShopComponent implements OnInit {
     const v = this.form.value;
 
     this.shop.upsertCustomer(this.slug, {
-      name: v.name, phone: v.phone,
+      name: v.name || `Mesa ${this.tableNumber()}`,
+      phone: v.phone || '',
       cep: v.cep, street: v.street, number: v.number, complement: v.complement,
       neighborhood: v.neighborhood, city: v.city, uf: v.uf,
     }).subscribe({
       next: (customer) => {
-        const address = [v.street, v.number].filter(Boolean).join(', ') +
+        const address = isTable ? undefined :
+          [v.street, v.number].filter(Boolean).join(', ') +
           (v.complement ? ` (${v.complement})` : '') +
           (v.neighborhood ? ` - ${v.neighborhood}` : '') +
           (v.city && v.uf ? `, ${v.city}/${v.uf}` : '');
@@ -284,8 +295,9 @@ export class ShopComponent implements OnInit {
           paymentMethod: v.paymentMethod,
           changeFor: v.changeFor ? parseFloat(v.changeFor) : undefined,
           deliveryAddress: address,
-          deliveryFee: this.shippingFee()!,
+          deliveryFee: isTable ? 0 : this.shippingFee()!,
           notes: v.notes || undefined,
+          tableNumber: this.tableNumber() ?? undefined,
         }).subscribe({
           next: (order) => {
             this.submitting.set(false);

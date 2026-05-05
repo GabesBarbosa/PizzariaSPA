@@ -115,4 +115,39 @@
       }
     </mat-card-content>
   </mat-card>
+
+  <!-- Mesas (salão) -->
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Mesas (Salão)</mat-card-title>
+      <mat-card-subtitle>Gere QR codes por mesa para pedidos no salão. Sem cobrança de frete.</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="tables-config">
+        <mat-form-field appearance="outline" class="table-count-field">
+          <mat-label>Quantidade de mesas</mat-label>
+          <input matInput type="number" min="0" max="200" [(ngModel)]="tableCountInput">
+        </mat-form-field>
+        <button mat-flat-button color="primary" (click)="saveTables()" [disabled]="savingTables()">
+          @if (savingTables()) { <mat-spinner diameter="18"></mat-spinner> } @else { <span>Salvar</span> }
+        </button>
+        @if (tableCount() > 0) {
+          <button mat-stroked-button (click)="printTables()" class="no-print">
+            <mat-icon>print</mat-icon> Imprimir QR Codes
+          </button>
+        }
+      </div>
+
+      @if (tables().length > 0) {
+        <div class="qr-grid">
+          @for (n of tables(); track n) {
+            <div class="qr-card">
+              <img [src]="qrUrl(n)" [alt]="'QR Mesa ' + n" width="160" height="160">
+              <div class="qr-label">Mesa {{ n }}</div>
+            </div>
+          }
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
 </div>

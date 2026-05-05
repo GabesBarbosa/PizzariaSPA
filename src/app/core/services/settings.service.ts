@@ -66,4 +66,12 @@ export class SettingsService {
   saveZones(zones: DeliveryZone[]): Observable<{ zones: DeliveryZone[] }> {
     return this.http.put<{ zones: DeliveryZone[] }>(`${this.baseUrl}/delivery-zones`, { zones });
   }
+
+  getTables(): Observable<{ tableCount: number }> {
+    return this.http.get<{ tableCount: number }>(`${this.baseUrl}/tables`);
+  }
+
+  saveTables(tableCount: number): Observable<{ tableCount: number }> {
+    return this.http.put<{ tableCount: number }>(`${this.baseUrl}/tables`, { tableCount });
+  }
 }
