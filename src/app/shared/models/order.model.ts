@@ -35,6 +35,8 @@ export interface Order {
   deliveryAddress?: string;
   notes?: string;
   deliveryFee?: number;
+  tableNumber?: number;
+  channel?: string;
   createdAt?: string;
 }
 
