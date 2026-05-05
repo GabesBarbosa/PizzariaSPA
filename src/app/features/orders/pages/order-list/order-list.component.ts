@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -45,13 +45,14 @@ export class OrderListComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit(): void {
     this.loadOrders();
     this.orderSub = this.notificationService.newOrder$.subscribe(() => {
-      this.loadOrders();
+      this.silentRefresh();
     });
   }
 
@@ -151,13 +152,26 @@ export class OrderListComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.orderService.getAll().subscribe({
       next: (orders) => {
-        this.orders = orders;
-        this.loading = false;
+        this.ngZone.run(() => {
+          this.orders = orders;
+          this.loading = false;
+        });
       },
       error: () => {
-        this.orders = [];
-        this.loading = false;
+        this.ngZone.run(() => {
+          this.orders = [];
+          this.loading = false;
+        });
       }
+    });
+  }
+
+  private silentRefresh(): void {
+    this.orderService.getAll().subscribe({
+      next: (orders) => {
+        this.ngZone.run(() => { this.orders = orders; });
+      },
+      error: () => {}
     });
   }
 }
