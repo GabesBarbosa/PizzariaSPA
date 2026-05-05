@@ -116,6 +116,7 @@ export class OrderCreateComponent implements OnInit {
       phone:        ['', [Validators.required, this.brPhoneValidator]],
       cep:          [''],
       number:       [''],
+      address:      [''],
       street:       [''],
       complement:   [''],
       neighborhood: [''],
@@ -296,11 +297,16 @@ export class OrderCreateComponent implements OnInit {
     this.cepLookingUp = true;
     this.http.get<any>(`${environment.apiUrl}/public/cep/${cep}`).subscribe({
       next: (info) => {
+        const number = this.newCustomerForm.value.number || '';
+        const formatted = [info.street, number].filter(Boolean).join(', ')
+          + (info.neighborhood ? ` - ${info.neighborhood}` : '')
+          + (info.city && info.uf ? `, ${info.city}/${info.uf}` : '');
         this.newCustomerForm.patchValue({
           street: info.street,
           neighborhood: info.neighborhood,
           city: info.city,
           uf: info.uf,
+          address: formatted,
         });
         this.cepLookingUp = false;
       },
@@ -316,13 +322,18 @@ export class OrderCreateComponent implements OnInit {
     this.savingCustomer = true;
 
     const v = this.newCustomerForm.value;
-    const addressParts = [v.street, v.number].filter(Boolean).join(', ')
-      + (v.neighborhood ? ` - ${v.neighborhood}` : '')
-      + (v.city && v.uf ? `, ${v.city}/${v.uf}` : '');
 
     this.customerService.create({
-      ...v,
-      address: addressParts.trim() || undefined,
+      name: v.name,
+      phone: v.phone,
+      address: v.address || undefined,
+      cep: v.cep || undefined,
+      number: v.number || undefined,
+      street: v.street || undefined,
+      complement: v.complement || undefined,
+      neighborhood: v.neighborhood || undefined,
+      city: v.city || undefined,
+      uf: v.uf || undefined,
     }).subscribe({
       next: (customer) => {
         this.selectedCustomer = customer;
