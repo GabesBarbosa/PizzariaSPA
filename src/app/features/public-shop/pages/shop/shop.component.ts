@@ -276,43 +276,49 @@ export class ShopComponent implements OnInit {
     this.submitting.set(true);
     const v = this.form.value;
 
-    this.shop.upsertCustomer(this.slug, isTable ? {
-      name: v.name || undefined,
-      tableNumber: this.tableNumber()!,
-    } : {
+    const placeOrder = (customerId: string | null) => {
+      const address = isTable ? undefined :
+        [v.street, v.number].filter(Boolean).join(', ') +
+        (v.complement ? ` (${v.complement})` : '') +
+        (v.neighborhood ? ` - ${v.neighborhood}` : '') +
+        (v.city && v.uf ? `, ${v.city}/${v.uf}` : '');
+
+      this.shop.createOrder(this.slug, {
+        customerId: customerId as any,
+        items: this.cart().map(c => ({ productId: c.product.id, quantity: c.quantity })),
+        paymentMethod: v.paymentMethod,
+        changeFor: v.changeFor ? parseFloat(v.changeFor) : undefined,
+        deliveryAddress: address,
+        deliveryFee: isTable ? 0 : this.shippingFee()!,
+        notes: v.notes || undefined,
+        tableNumber: this.tableNumber() ?? undefined,
+      }).subscribe({
+        next: (order) => {
+          this.submitting.set(false);
+          this.finishedOrderId.set(order.id);
+          this.cart.set([]);
+          this.stage.set('success');
+        },
+        error: () => {
+          this.submitting.set(false);
+          this.snack.open('Erro ao finalizar o pedido.', 'OK', { duration: 4000 });
+        },
+      });
+    };
+
+    if (isTable) {
+      placeOrder(null);
+      return;
+    }
+
+    this.shop.upsertCustomer(this.slug, {
       name: v.name,
       phone: v.phone,
       cep: v.cep, street: v.street, number: v.number, complement: v.complement,
       neighborhood: v.neighborhood, city: v.city, uf: v.uf,
     }).subscribe({
       next: (customer) => {
-        const address = isTable ? undefined :
-          [v.street, v.number].filter(Boolean).join(', ') +
-          (v.complement ? ` (${v.complement})` : '') +
-          (v.neighborhood ? ` - ${v.neighborhood}` : '') +
-          (v.city && v.uf ? `, ${v.city}/${v.uf}` : '');
-
-        this.shop.createOrder(this.slug, {
-          customerId: customer.id,
-          items: this.cart().map(c => ({ productId: c.product.id, quantity: c.quantity })),
-          paymentMethod: v.paymentMethod,
-          changeFor: v.changeFor ? parseFloat(v.changeFor) : undefined,
-          deliveryAddress: address,
-          deliveryFee: isTable ? 0 : this.shippingFee()!,
-          notes: v.notes || undefined,
-          tableNumber: this.tableNumber() ?? undefined,
-        }).subscribe({
-          next: (order) => {
-            this.submitting.set(false);
-            this.finishedOrderId.set(order.id);
-            this.cart.set([]);
-            this.stage.set('success');
-          },
-          error: () => {
-            this.submitting.set(false);
-            this.snack.open('Erro ao finalizar o pedido.', 'OK', { duration: 4000 });
-          },
-        });
+        placeOrder(customer.id);
       },
       error: () => {
         this.submitting.set(false);

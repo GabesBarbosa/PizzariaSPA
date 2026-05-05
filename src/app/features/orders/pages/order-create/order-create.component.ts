@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -15,12 +16,15 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { debounceTime, switchMap, of } from 'rxjs';
 
 import { Customer, Product, ProductVariation, CreateOrderDto, PaymentMethod } from '../../../../shared/models';
 import { CustomerService } from '../../../../core/services/customer.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { OrderService } from '../../../../core/services/order.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { environment } from '../../../../../environments/environment';
 import { BrlPipe } from '../../../../shared/utils/brl.pipe';
 import { PhonePipe } from '../../../../shared/utils/phone.pipe';
 import { CurrencyMaskDirective } from '../../../../shared/utils/currency-mask.directive';
@@ -42,8 +46,8 @@ interface CartItem {
     MatButtonModule, MatIconModule, MatAutocompleteModule,
     MatSelectModule, MatTableModule, MatDividerModule,
     MatStepperModule, MatSnackBarModule, MatChipsModule,
-    MatCheckboxModule, BrlPipe, PhonePipe,
-    CurrencyMaskDirective
+    MatCheckboxModule, MatProgressSpinnerModule,
+    BrlPipe, PhonePipe, CurrencyMaskDirective
   ],
   templateUrl: './order-create.component.html',
   styleUrl: './order-create.component.scss'
@@ -72,6 +76,8 @@ export class OrderCreateComponent implements OnInit {
   paymentMethod: PaymentMethod | '' = '';
   deliveryAddress = '';
   deliveryFee: number | null = null;
+  shippingLoading = false;
+  shippingError: string | null = null;
   submitting = false;
 
   isEditMode = false;
@@ -92,6 +98,8 @@ export class OrderCreateComponent implements OnInit {
     private customerService: CustomerService,
     private productService: ProductService,
     private orderService: OrderService,
+    private authService: AuthService,
+    private http: HttpClient,
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar
@@ -200,9 +208,50 @@ export class OrderCreateComponent implements OnInit {
   selectCustomer(customer: Customer): void {
     this.selectedCustomer = customer;
     this.showNewCustomerForm = false;
+    this.shippingError = null;
+
     if (customer.address) {
       this.deliveryAddress = customer.address;
     }
+
+    if (customer.cep && customer.number) {
+      this.quoteShipping(customer);
+    }
+  }
+
+  private quoteShipping(customer: Customer): void {
+    const slug = this.authService.currentUser?.businessSlug;
+    if (!slug) return;
+
+    this.shippingLoading = true;
+    this.deliveryFee = null;
+    this.shippingError = null;
+
+    this.http.post<{ fee: number; distanceKm: number; outOfRange: boolean }>(
+      `${environment.apiUrl.replace('/api', '')}/api/public/${slug}/shipping`,
+      {
+        cep: customer.cep,
+        number: customer.number,
+        street: customer.street,
+        neighborhood: customer.neighborhood,
+        city: customer.city,
+        uf: customer.uf,
+      }
+    ).subscribe({
+      next: (res) => {
+        this.shippingLoading = false;
+        if (res.outOfRange) {
+          this.shippingError = `Fora da área de entrega (${res.distanceKm} km). Informe a taxa manualmente.`;
+        } else {
+          this.deliveryFee = res.fee;
+          this.shippingError = null;
+        }
+      },
+      error: (err) => {
+        this.shippingLoading = false;
+        this.shippingError = err?.error?.message || 'Não foi possível calcular o frete.';
+      },
+    });
   }
 
   toggleNewCustomerForm(): void {
