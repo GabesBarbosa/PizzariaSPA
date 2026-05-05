@@ -78,6 +78,7 @@ export class OrderCreateComponent implements OnInit {
   deliveryFee: number | null = null;
   shippingLoading = false;
   shippingError: string | null = null;
+  cepLookingUp = false;
   submitting = false;
 
   isEditMode = false;
@@ -111,9 +112,15 @@ export class OrderCreateComponent implements OnInit {
     });
 
     this.newCustomerForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(3)]],
-      phone: ['', [Validators.required, this.brPhoneValidator]],
-      address: ['']
+      name:         ['', [Validators.required, Validators.minLength(3)]],
+      phone:        ['', [Validators.required, this.brPhoneValidator]],
+      cep:          [''],
+      number:       [''],
+      street:       [''],
+      complement:   [''],
+      neighborhood: [''],
+      city:         [''],
+      uf:           [''],
     });
 
     this.customerForm.get('search')!.valueChanges.pipe(
@@ -276,19 +283,54 @@ export class OrderCreateComponent implements OnInit {
     }
   }
 
+  formatNewCep(): void {
+    const ctrl = this.newCustomerForm.get('cep')!;
+    let digits = (ctrl.value || '').replace(/\D/g, '').slice(0, 8);
+    const out = digits.length > 5 ? `${digits.substring(0, 5)}-${digits.substring(5)}` : digits;
+    ctrl.setValue(out, { emitEvent: false });
+  }
+
+  onNewCepBlur(): void {
+    const cep = (this.newCustomerForm.value.cep || '').replace(/\D/g, '');
+    if (cep.length !== 8) return;
+    this.cepLookingUp = true;
+    this.http.get<any>(`${environment.apiUrl}/public/cep/${cep}`).subscribe({
+      next: (info) => {
+        this.newCustomerForm.patchValue({
+          street: info.street,
+          neighborhood: info.neighborhood,
+          city: info.city,
+          uf: info.uf,
+        });
+        this.cepLookingUp = false;
+      },
+      error: () => {
+        this.cepLookingUp = false;
+        this.snackBar.open('CEP não encontrado.', 'OK', { duration: 3000 });
+      },
+    });
+  }
+
   saveNewCustomer(): void {
     if (this.newCustomerForm.invalid) return;
     this.savingCustomer = true;
 
-    this.customerService.create(this.newCustomerForm.value).subscribe({
+    const v = this.newCustomerForm.value;
+    const addressParts = [v.street, v.number].filter(Boolean).join(', ')
+      + (v.neighborhood ? ` - ${v.neighborhood}` : '')
+      + (v.city && v.uf ? `, ${v.city}/${v.uf}` : '');
+
+    this.customerService.create({
+      ...v,
+      address: addressParts.trim() || undefined,
+    }).subscribe({
       next: (customer) => {
         this.selectedCustomer = customer;
         this.customerForm.get('search')!.setValue(customer, { emitEvent: false });
         this.showNewCustomerForm = false;
         this.savingCustomer = false;
-        if (customer.address) {
-          this.deliveryAddress = customer.address;
-        }
+        if (customer.address) this.deliveryAddress = customer.address;
+        if (customer.cep && customer.number) this.quoteShipping(customer);
         this.snackBar.open('Cliente cadastrado!', 'OK', { duration: 2500 });
       },
       error: () => {

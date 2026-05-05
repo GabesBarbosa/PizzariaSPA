@@ -70,10 +70,39 @@
                 <mat-error *ngIf="newCustomerForm.get('phone')?.hasError('invalidPhone')">Telefone inválido</mat-error>
               </mat-form-field>
 
+              <div class="row-two">
+                <mat-form-field appearance="outline">
+                  <mat-label>CEP</mat-label>
+                  <input matInput formControlName="cep" placeholder="00000-000"
+                         (input)="formatNewCep()" (blur)="onNewCepBlur()">
+                  <mat-spinner matSuffix diameter="16" *ngIf="cepLookingUp"></mat-spinner>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Número</mat-label>
+                  <input matInput formControlName="number" placeholder="123">
+                </mat-form-field>
+              </div>
+
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Endereço</mat-label>
-                <input matInput formControlName="address" placeholder="Endereço completo (opcional)">
+                <mat-label>Rua</mat-label>
+                <input matInput formControlName="street">
               </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Complemento</mat-label>
+                <input matInput formControlName="complement" placeholder="Apto, bloco... (opcional)">
+              </mat-form-field>
+
+              <div class="row-two">
+                <mat-form-field appearance="outline">
+                  <mat-label>Bairro</mat-label>
+                  <input matInput formControlName="neighborhood">
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Cidade</mat-label>
+                  <input matInput formControlName="city">
+                </mat-form-field>
+              </div>
 
               <div class="new-customer-actions">
                 <button mat-button (click)="toggleNewCustomerForm()">Cancelar</button>
