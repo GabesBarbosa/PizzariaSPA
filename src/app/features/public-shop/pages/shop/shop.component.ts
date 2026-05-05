@@ -276,9 +276,12 @@ export class ShopComponent implements OnInit {
     this.submitting.set(true);
     const v = this.form.value;
 
-    this.shop.upsertCustomer(this.slug, {
-      name: v.name || `Mesa ${this.tableNumber()}`,
-      phone: v.phone || '',
+    this.shop.upsertCustomer(this.slug, isTable ? {
+      name: v.name || undefined,
+      tableNumber: this.tableNumber()!,
+    } : {
+      name: v.name,
+      phone: v.phone,
       cep: v.cep, street: v.street, number: v.number, complement: v.complement,
       neighborhood: v.neighborhood, city: v.city, uf: v.uf,
     }).subscribe({

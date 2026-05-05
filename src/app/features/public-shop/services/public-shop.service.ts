@@ -112,8 +112,9 @@ export class PublicShopService {
   }
 
   upsertCustomer(slug: string, payload: {
-    name: string;
-    phone: string;
+    name?: string;
+    phone?: string;
+    tableNumber?: number;
     cep?: string; street?: string; number?: string; complement?: string;
     neighborhood?: string; city?: string; uf?: string;
   }): Observable<PublicCustomerDto> {

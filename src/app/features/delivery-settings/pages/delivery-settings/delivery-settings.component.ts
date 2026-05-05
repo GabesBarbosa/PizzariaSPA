@@ -218,7 +218,31 @@ export class DeliverySettingsComponent implements OnInit {
   }
 
   printTables(): void {
-    window.print();
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) return;
+
+    const rows = this.tables().map(n => `
+      <div class="qr-card">
+        <img src="${this.qrUrl(n)}" width="160" height="160" alt="Mesa ${n}">
+        <div class="label">Mesa ${n}</div>
+      </div>`).join('');
+
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+      <title>QR Codes - Mesas</title>
+      <style>
+        body { font-family: sans-serif; margin: 16px; }
+        h2   { text-align: center; margin-bottom: 16px; }
+        .grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+        .qr-card { display: flex; flex-direction: column; align-items: center;
+                   border: 1px solid #ccc; border-radius: 8px; padding: 12px; width: 180px; }
+        .label { font-size: 16px; font-weight: 700; margin-top: 8px; }
+        @media print { body { margin: 0; } .qr-card { break-inside: avoid; } }
+      </style></head><body>
+      <h2>QR Codes das Mesas</h2>
+      <div class="grid">${rows}</div>
+      <script>window.onload = () => { window.print(); window.close(); }<\/script>
+    </body></html>`);
+    win.document.close();
   }
 
   saveZones(): void {
