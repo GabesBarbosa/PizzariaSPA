@@ -11,7 +11,14 @@
     <mat-card-content>
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nome</mat-label>
+          <mat-label>Nome do Estabelecimento</mat-label>
+          <input matInput [(ngModel)]="businessName" placeholder="Nome do seu negócio">
+          <mat-icon matPrefix>storefront</mat-icon>
+        </mat-form-field>
+      </div>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Seu Nome</mat-label>
           <input matInput [(ngModel)]="name" placeholder="Seu nome">
           <mat-icon matPrefix>person</mat-icon>
         </mat-form-field>
@@ -26,7 +33,7 @@
     </mat-card-content>
     <mat-card-actions align="end">
       <button mat-raised-button color="primary" (click)="saveProfile()"
-              [disabled]="saving || !name || !email">
+              [disabled]="saving || !name || !email || !businessName">
         <mat-icon>save</mat-icon>
         {{ saving ? 'Salvando...' : 'Salvar' }}
       </button>

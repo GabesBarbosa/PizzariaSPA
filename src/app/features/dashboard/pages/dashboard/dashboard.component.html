@@ -24,8 +24,8 @@
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color:#388e3c">attach_money</mat-icon>
-            <div>
-              <div class="kpi-value">{{ formatBrl(todayRevenue) }}</div>
+            <div class="kpi-content">
+              <div class="kpi-value" [title]="formatBrl(todayRevenue)">{{ formatBrl(todayRevenue) }}</div>
               <div class="kpi-label">Faturamento do Dia</div>
             </div>
           </div>
@@ -35,8 +35,8 @@
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color:#1976d2">receipt_long</mat-icon>
-            <div>
-              <div class="kpi-value">{{ todayOrders }}</div>
+            <div class="kpi-content">
+              <div class="kpi-value" [title]="todayOrders.toString()">{{ todayOrders }}</div>
               <div class="kpi-label">Pedidos do Dia</div>
             </div>
           </div>
@@ -46,8 +46,8 @@
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color:#e53935">restaurant</mat-icon>
-            <div>
-              <div class="kpi-value">{{ topProductName }}</div>
+            <div class="kpi-content">
+              <div class="kpi-value" [title]="topProductName">{{ topProductName }}</div>
               <div class="kpi-label">Produto Mais Vendido</div>
             </div>
           </div>
@@ -57,8 +57,8 @@
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color:#f57c00">trending_up</mat-icon>
-            <div>
-              <div class="kpi-value">{{ formatBrl(avgTicket) }}</div>
+            <div class="kpi-content">
+              <div class="kpi-value" [title]="formatBrl(avgTicket)">{{ formatBrl(avgTicket) }}</div>
               <div class="kpi-label">Ticket Medio</div>
             </div>
           </div>
@@ -68,8 +68,8 @@
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color:#7b1fa2">schedule</mat-icon>
-            <div>
-              <div class="kpi-value">{{ avgDeliveryTime }} min</div>
+            <div class="kpi-content">
+              <div class="kpi-value" [title]="avgDeliveryTime + ' min'">{{ avgDeliveryTime }} min</div>
               <div class="kpi-label">Tempo Medio Entrega</div>
             </div>
           </div>
@@ -226,8 +226,8 @@
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color:#1976d2">people</mat-icon>
-            <div>
-              <div class="kpi-value">{{ totalCustomers }}</div>
+            <div class="kpi-content">
+              <div class="kpi-value" [title]="totalCustomers.toString()">{{ totalCustomers }}</div>
               <div class="kpi-label">Total de Clientes</div>
             </div>
           </div>
@@ -237,8 +237,8 @@
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color:#388e3c">person_add</mat-icon>
-            <div>
-              <div class="kpi-value">{{ newCustomersPeriod }}</div>
+            <div class="kpi-content">
+              <div class="kpi-value" [title]="newCustomersPeriod.toString()">{{ newCustomersPeriod }}</div>
               <div class="kpi-label">Novos no Periodo</div>
             </div>
           </div>
@@ -248,8 +248,8 @@
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color:#7b1fa2">loyalty</mat-icon>
-            <div>
-              <div class="kpi-value">{{ recurringCustomers }}</div>
+            <div class="kpi-content">
+              <div class="kpi-value" [title]="recurringCustomers.toString()">{{ recurringCustomers }}</div>
               <div class="kpi-label">Recorrentes</div>
             </div>
           </div>
@@ -259,8 +259,8 @@
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color:#e53935">trending_up</mat-icon>
-            <div>
-              <div class="kpi-value">{{ returnRate }}%</div>
+            <div class="kpi-content">
+              <div class="kpi-value" [title]="returnRate + '%'">{{ returnRate }}%</div>
               <div class="kpi-label">Taxa de Retorno</div>
             </div>
           </div>
@@ -270,8 +270,8 @@
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color:#f57c00">monetization_on</mat-icon>
-            <div>
-              <div class="kpi-value">{{ formatBrl(avgCLV) }}</div>
+            <div class="kpi-content">
+              <div class="kpi-value" [title]="formatBrl(avgCLV)">{{ formatBrl(avgCLV) }}</div>
               <div class="kpi-label">CLV Medio</div>
             </div>
           </div>

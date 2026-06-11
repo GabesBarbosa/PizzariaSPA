@@ -125,6 +125,11 @@ export class PublicShopService {
     return this.http.get<PublicCustomerDto>(`${this.base}/${slug}/customers?token=${encodeURIComponent(token)}`);
   }
 
+  lookupCustomerByPhone(slug: string, phone: string): Observable<PublicCustomerDto> {
+    const digits = phone.replace(/\D/g, '');
+    return this.http.get<PublicCustomerDto>(`${this.base}/${slug}/customers/lookup?phone=${digits}`);
+  }
+
   getTopProducts(slug: string): Observable<PublicProductDto[]> {
     return this.http.get<PublicProductDto[]>(`${this.base}/${slug}/top-products`);
   }

@@ -437,6 +437,67 @@ mat-form-field { width: 100%; }
 
 .muted { color: #bbb; }
 
+.customer-found-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #e8f5e9;
+  border-radius: 8px;
+  color: #2e7d32;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: -4px;
+  margin-bottom: 4px;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
+.delivery-type-card {
+  padding-bottom: 8px;
+}
+
+.delivery-type-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.delivery-type-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 8px;
+  border: 2px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  mat-icon { font-size: 28px; width: 28px; height: 28px; color: #666; }
+
+  &.active {
+    border-color: #0f172a;
+    background: #f1f5f9;
+
+    mat-icon { color: #0f172a; }
+  }
+}
+
+.pickup-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.85rem;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+
 .shipping-error {
   display: flex;
   align-items: center;

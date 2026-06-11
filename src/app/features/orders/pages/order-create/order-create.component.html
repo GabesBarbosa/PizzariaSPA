@@ -271,6 +271,23 @@
         <mat-card-title>Detalhes da Entrega e Pagamento</mat-card-title>
       </mat-card-header>
       <mat-card-content>
+
+        <!-- Tipo de entrega -->
+        <div class="delivery-type-toggle">
+          <button mat-flat-button
+                  [color]="deliveryType === 'delivery' ? 'primary' : ''"
+                  [class.delivery-type-active]="deliveryType === 'delivery'"
+                  (click)="setDeliveryType('delivery')">
+            <mat-icon>delivery_dining</mat-icon> Entrega
+          </button>
+          <button mat-flat-button
+                  [color]="deliveryType === 'pickup' ? 'primary' : ''"
+                  [class.delivery-type-active]="deliveryType === 'pickup'"
+                  (click)="setDeliveryType('pickup')">
+            <mat-icon>store</mat-icon> Retirada
+          </button>
+        </div>
+
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Forma de Pagamento</mat-label>
           <mat-select [(value)]="paymentMethod">
@@ -281,23 +298,29 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Endereço de Entrega</mat-label>
-          <textarea matInput [(ngModel)]="deliveryAddress" [ngModelOptions]="{standalone: true}"
-                    rows="2" placeholder="Endereço para entrega"></textarea>
-        </mat-form-field>
-
-        <div class="shipping-row">
+        <ng-container *ngIf="deliveryType === 'delivery'">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Taxa de Entrega (R$)</mat-label>
-            <input matInput currencyMask [(ngModel)]="deliveryFee" [ngModelOptions]="{standalone: true}"
-                   placeholder="R$ 0,00">
-            <mat-hint *ngIf="shippingLoading">Calculando frete...</mat-hint>
+            <mat-label>Endereço de Entrega</mat-label>
+            <textarea matInput [(ngModel)]="deliveryAddress" [ngModelOptions]="{standalone: true}"
+                      rows="2" placeholder="Endereço para entrega"></textarea>
           </mat-form-field>
-          <mat-spinner *ngIf="shippingLoading" diameter="24" class="shipping-spinner"></mat-spinner>
-        </div>
-        <p *ngIf="shippingError" class="shipping-error">
-          <mat-icon>warning</mat-icon> {{ shippingError }}
+
+          <div class="shipping-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Taxa de Entrega (R$)</mat-label>
+              <input matInput currencyMask [(ngModel)]="deliveryFee" [ngModelOptions]="{standalone: true}"
+                     placeholder="R$ 0,00">
+              <mat-hint *ngIf="shippingLoading">Calculando frete...</mat-hint>
+            </mat-form-field>
+            <mat-spinner *ngIf="shippingLoading" diameter="24" class="shipping-spinner"></mat-spinner>
+          </div>
+          <p *ngIf="shippingError" class="shipping-error">
+            <mat-icon>warning</mat-icon> {{ shippingError }}
+          </p>
+        </ng-container>
+
+        <p *ngIf="deliveryType === 'pickup'" class="pickup-info">
+          <mat-icon>info_outline</mat-icon> Cliente retira no local — sem taxa de entrega.
         </p>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -344,7 +367,12 @@
 
         <mat-divider></mat-divider>
 
-        <div class="confirmation-section" *ngIf="deliveryAddress">
+        <div class="confirmation-section">
+          <h3>Tipo de Entrega</h3>
+          <p>{{ deliveryType === 'delivery' ? 'Entrega' : 'Retirada no local' }}</p>
+        </div>
+
+        <div class="confirmation-section" *ngIf="deliveryType === 'delivery' && deliveryAddress">
           <h3>Endereço de Entrega</h3>
           <p>{{ deliveryAddress }}</p>
         </div>
@@ -366,7 +394,7 @@
             <span>Subtotal:</span>
             <span>{{ subtotal | brl }}</span>
           </div>
-          <div class="total-line" *ngIf="deliveryFee">
+          <div class="total-line" *ngIf="deliveryType === 'delivery' && deliveryFee">
             <span>Taxa de Entrega:</span>
             <span>{{ deliveryFee | brl }}</span>
           </div>

@@ -159,7 +159,7 @@
             <div class="totals-row">
               <span>Subtotal</span><span>{{ cartSubtotal() | brl }}</span>
             </div>
-            @if (!tableNumber()) {
+            @if (!tableNumber() && deliveryType() === 'delivery') {
               <div class="totals-row">
                 <span>Entrega</span>
                 @if (shippingLoading()) {
@@ -169,6 +169,12 @@
                 } @else {
                   <span class="muted">—</span>
                 }
+              </div>
+            }
+            @if (!tableNumber() && deliveryType() === 'pickup') {
+              <div class="totals-row">
+                <span>Entrega</span>
+                <span class="pickup-badge"><mat-icon>store</mat-icon> Retirada</span>
               </div>
             }
             <div class="totals-row total-highlight">
@@ -190,21 +196,53 @@
             </div>
           }
 
+          @if (!tableNumber()) {
+            <!-- Tipo de entrega -->
+            <div class="checkout-card delivery-type-card">
+              <div class="checkout-card-title">Como deseja receber?</div>
+              <div class="delivery-type-btns">
+                <button type="button" class="delivery-type-btn"
+                        [class.active]="deliveryType() === 'delivery'"
+                        (click)="setDeliveryType('delivery')">
+                  <mat-icon>delivery_dining</mat-icon>
+                  <span>Entrega</span>
+                </button>
+                <button type="button" class="delivery-type-btn"
+                        [class.active]="deliveryType() === 'pickup'"
+                        (click)="setDeliveryType('pickup')">
+                  <mat-icon>store</mat-icon>
+                  <span>Retirada</span>
+                </button>
+              </div>
+            </div>
+          }
+
           <div class="checkout-card">
             <div class="checkout-card-title">Seus dados</div>
+            @if (!tableNumber()) {
+              <mat-form-field appearance="outline">
+                <mat-label>Telefone (WhatsApp)</mat-label>
+                <input matInput formControlName="phone" (input)="formatPhone()" (blur)="onPhoneBlur()">
+                @if (phoneLookupLoading()) {
+                  <mat-spinner matSuffix diameter="18"></mat-spinner>
+                } @else if (customerFound()) {
+                  <mat-icon matSuffix style="color:#388e3c">check_circle</mat-icon>
+                }
+              </mat-form-field>
+              @if (customerFound()) {
+                <div class="customer-found-banner">
+                  <mat-icon>person</mat-icon>
+                  <span>Dados preenchidos automaticamente!</span>
+                </div>
+              }
+            }
             <mat-form-field appearance="outline">
               <mat-label>Nome{{ tableNumber() ? ' (opcional)' : '' }}</mat-label>
               <input matInput formControlName="name">
             </mat-form-field>
-            @if (!tableNumber()) {
-              <mat-form-field appearance="outline">
-                <mat-label>Telefone (WhatsApp)</mat-label>
-                <input matInput formControlName="phone" (input)="formatPhone()">
-              </mat-form-field>
-            }
           </div>
 
-          @if (!tableNumber()) {
+          @if (!tableNumber() && deliveryType() === 'delivery') {
             <div class="checkout-card">
               <div class="checkout-card-title">Endereço de entrega</div>
               <mat-form-field appearance="outline">

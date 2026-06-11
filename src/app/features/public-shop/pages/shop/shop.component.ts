@@ -61,14 +61,18 @@ export class ShopComponent implements OnInit {
   cartCount = computed(() => this.cart().reduce((s, i) => s + i.quantity, 0));
   cartSubtotal = computed(() => this.cart().reduce((s, i) => s + i.quantity * i.product.price, 0));
 
+  deliveryType = signal<'delivery' | 'pickup'>('delivery');
+
   form!: FormGroup;
   shippingFee = signal<number | null>(null);
   shippingKm = signal<number | null>(null);
   shippingError = signal<string | null>(null);
   shippingLoading = signal(false);
   cepLoading = signal(false);
+  phoneLookupLoading = signal(false);
+  customerFound = signal(false);
 
-  orderTotal = computed(() => this.cartSubtotal() + (this.shippingFee() ?? 0));
+  orderTotal = computed(() => this.cartSubtotal() + (this.deliveryType() === 'delivery' ? (this.shippingFee() ?? 0) : 0));
 
   finishedOrderId = signal<number | null>(null);
 
@@ -188,6 +192,28 @@ export class ShopComponent implements OnInit {
     this.cart.set(next);
   }
 
+  /* ─── Delivery type ─── */
+
+  setDeliveryType(type: 'delivery' | 'pickup'): void {
+    this.deliveryType.set(type);
+    const isTable = this.tableNumber() !== null;
+    if (type === 'pickup') {
+      this.form.get('cep')!.clearValidators();
+      this.form.get('number')!.clearValidators();
+      this.form.get('cep')!.updateValueAndValidity();
+      this.form.get('number')!.updateValueAndValidity();
+      this.shippingFee.set(null);
+      this.shippingError.set(null);
+    } else {
+      if (!isTable) {
+        this.form.get('cep')!.setValidators([Validators.required]);
+        this.form.get('number')!.setValidators([Validators.required]);
+        this.form.get('cep')!.updateValueAndValidity();
+        this.form.get('number')!.updateValueAndValidity();
+      }
+    }
+  }
+
   /* ─── Stages ─── */
 
   goToCheckout(): void {
@@ -268,7 +294,9 @@ export class ShopComponent implements OnInit {
       return;
     }
     const isTable = this.tableNumber() !== null;
-    if (!isTable && this.shippingFee() === null) {
+    const isDelivery = this.deliveryType() === 'delivery';
+
+    if (!isTable && isDelivery && this.shippingFee() === null) {
       this.snack.open('Aguarde o cálculo do frete ou revise o endereço.', 'OK', { duration: 3000 });
       return;
     }
@@ -277,7 +305,7 @@ export class ShopComponent implements OnInit {
     const v = this.form.value;
 
     const placeOrder = (customerId: string | null) => {
-      const address = isTable ? undefined :
+      const address = (isTable || !isDelivery) ? undefined :
         [v.street, v.number].filter(Boolean).join(', ') +
         (v.complement ? ` (${v.complement})` : '') +
         (v.neighborhood ? ` - ${v.neighborhood}` : '') +
@@ -289,7 +317,7 @@ export class ShopComponent implements OnInit {
         paymentMethod: v.paymentMethod,
         changeFor: v.changeFor ? parseFloat(v.changeFor) : undefined,
         deliveryAddress: address,
-        deliveryFee: isTable ? 0 : this.shippingFee()!,
+        deliveryFee: (isTable || !isDelivery) ? 0 : this.shippingFee()!,
         notes: v.notes || undefined,
         tableNumber: this.tableNumber() ?? undefined,
       }).subscribe({
@@ -306,8 +334,20 @@ export class ShopComponent implements OnInit {
       });
     };
 
-    if (isTable) {
-      placeOrder(null);
+    if (isTable || !isDelivery) {
+      if (!isTable && v.name) {
+        this.shop.upsertCustomer(this.slug, {
+          name: v.name,
+          phone: v.phone || '',
+          cep: '', street: '', number: '', complement: '',
+          neighborhood: '', city: '', uf: '',
+        }).subscribe({
+          next: (customer) => placeOrder(customer.id),
+          error: () => placeOrder(null),
+        });
+      } else {
+        placeOrder(null);
+      }
       return;
     }
 
@@ -323,6 +363,38 @@ export class ShopComponent implements OnInit {
       error: () => {
         this.submitting.set(false);
         this.snack.open('Erro ao cadastrar cliente.', 'OK', { duration: 4000 });
+      },
+    });
+  }
+
+  onPhoneBlur(): void {
+    const digits = (this.form.value.phone || '').replace(/\D/g, '');
+    if (digits.length < 10) return;
+
+    this.phoneLookupLoading.set(true);
+    this.customerFound.set(false);
+
+    this.shop.lookupCustomerByPhone(this.slug, digits).subscribe({
+      next: (customer) => {
+        this.phoneLookupLoading.set(false);
+        this.customerFound.set(true);
+        this.form.patchValue({
+          name:         customer.name        || '',
+          cep:          customer.cep         || '',
+          street:       customer.street      || '',
+          number:       customer.number      || '',
+          complement:   customer.complement  || '',
+          neighborhood: customer.neighborhood || '',
+          city:         customer.city        || '',
+          uf:           customer.uf          || '',
+        });
+        if (customer.cep && customer.street && customer.number && this.deliveryType() === 'delivery') {
+          this.tryQuoteShipping();
+        }
+      },
+      error: () => {
+        this.phoneLookupLoading.set(false);
+        this.customerFound.set(false);
       },
     });
   }

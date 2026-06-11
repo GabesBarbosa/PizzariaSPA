@@ -3,6 +3,8 @@ import { Product } from './product.model';
 
 export type OrderStatus = 'RECEIVED' | 'PREPARING' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
 
+export type DeliveryType = 'delivery' | 'pickup';
+
 export type PaymentMethod = 'dinheiro' | 'cartao_credito' | 'cartao_debito' | 'pix';
 
 export interface OrderItemVariation {
@@ -32,6 +34,7 @@ export interface Order {
   total: number;
   status: OrderStatus;
   paymentMethod?: PaymentMethod;
+  deliveryType?: DeliveryType;
   deliveryAddress?: string;
   notes?: string;
   deliveryFee?: number;
@@ -44,6 +47,7 @@ export interface CreateOrderDto {
   customerId: string;
   items: { productId: string; quantity: number; variations?: { variationId: string }[] }[];
   paymentMethod?: string;
+  deliveryType?: DeliveryType;
   deliveryAddress?: string;
   notes?: string;
   deliveryFee?: number;

@@ -19,7 +19,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { debounceTime, switchMap, of } from 'rxjs';
 
-import { Customer, Product, ProductVariation, CreateOrderDto, PaymentMethod } from '../../../../shared/models';
+import { Customer, Product, ProductVariation, CreateOrderDto, PaymentMethod, DeliveryType } from '../../../../shared/models';
 import { CustomerService } from '../../../../core/services/customer.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { OrderService } from '../../../../core/services/order.service';
@@ -74,6 +74,7 @@ export class OrderCreateComponent implements OnInit {
   cartColumns = ['product', 'unitPrice', 'quantity', 'subtotal', 'actions'];
   orderNotes = '';
   paymentMethod: PaymentMethod | '' = '';
+  deliveryType: DeliveryType = 'delivery';
   deliveryAddress = '';
   deliveryFee: number | null = null;
   shippingLoading = false;
@@ -213,17 +214,35 @@ export class OrderCreateComponent implements OnInit {
     return customer ? `${customer.name} - ${customer.phone}` : '';
   }
 
+  setDeliveryType(type: DeliveryType): void {
+    this.deliveryType = type;
+    if (type === 'pickup') {
+      this.deliveryAddress = '';
+      this.deliveryFee = 0;
+      this.shippingError = null;
+    } else {
+      this.deliveryFee = null;
+      if (this.selectedCustomer?.address) {
+        this.deliveryAddress = this.selectedCustomer.address;
+      }
+      if (this.selectedCustomer?.cep && this.selectedCustomer?.number) {
+        this.quoteShipping(this.selectedCustomer);
+      }
+    }
+  }
+
   selectCustomer(customer: Customer): void {
     this.selectedCustomer = customer;
     this.showNewCustomerForm = false;
     this.shippingError = null;
 
-    if (customer.address) {
-      this.deliveryAddress = customer.address;
-    }
-
-    if (customer.cep && customer.number) {
-      this.quoteShipping(customer);
+    if (this.deliveryType === 'delivery') {
+      if (customer.address) {
+        this.deliveryAddress = customer.address;
+      }
+      if (customer.cep && customer.number) {
+        this.quoteShipping(customer);
+      }
     }
   }
 
@@ -340,8 +359,10 @@ export class OrderCreateComponent implements OnInit {
         this.customerForm.get('search')!.setValue(customer, { emitEvent: false });
         this.showNewCustomerForm = false;
         this.savingCustomer = false;
-        if (customer.address) this.deliveryAddress = customer.address;
-        if (customer.cep && customer.number) this.quoteShipping(customer);
+        if (this.deliveryType === 'delivery') {
+          if (customer.address) this.deliveryAddress = customer.address;
+          if (customer.cep && customer.number) this.quoteShipping(customer);
+        }
         this.snackBar.open('Cliente cadastrado!', 'OK', { duration: 2500 });
       },
       error: () => {
@@ -473,7 +494,7 @@ export class OrderCreateComponent implements OnInit {
   }
 
   get orderTotal(): number {
-    return this.subtotal + (this.deliveryFee || 0);
+    return this.subtotal + (this.deliveryType === 'delivery' ? (this.deliveryFee || 0) : 0);
   }
 
   getPaymentLabel(value: string): string {
@@ -502,9 +523,10 @@ export class OrderCreateComponent implements OnInit {
         variations: item.selectedVariations.map(v => ({ variationId: v.id }))
       })),
       paymentMethod: this.paymentMethod || undefined,
-      deliveryAddress: this.deliveryAddress || undefined,
+      deliveryType: this.deliveryType,
+      deliveryAddress: this.deliveryType === 'delivery' ? (this.deliveryAddress || undefined) : undefined,
       notes: this.orderNotes || undefined,
-      deliveryFee: this.deliveryFee || undefined
+      deliveryFee: this.deliveryType === 'delivery' ? (this.deliveryFee || undefined) : 0
     };
 
     const request$ = this.isEditMode && this.orderId

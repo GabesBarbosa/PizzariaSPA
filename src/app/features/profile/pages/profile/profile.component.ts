@@ -28,6 +28,7 @@ import { environment } from '../../../../../environments/environment';
 export class ProfileComponent implements OnInit {
   name = '';
   email = '';
+  businessName = '';
   currentPassword = '';
   newPassword = '';
   confirmPassword = '';
@@ -49,13 +50,14 @@ export class ProfileComponent implements OnInit {
     if (this.user) {
       this.name = this.user.name;
       this.email = this.user.email;
+      this.businessName = this.user.businessName || '';
     }
   }
 
   saveProfile(): void {
-    if (!this.name || !this.email) return;
+    if (!this.name || !this.email || !this.businessName) return;
     this.saving = true;
-    this.http.put<any>(`${environment.apiUrl}/auth/profile`, { name: this.name, email: this.email }).subscribe({
+    this.http.put<any>(`${environment.apiUrl}/auth/profile`, { name: this.name, email: this.email, businessName: this.businessName }).subscribe({
       next: (res) => {
         this.saving = false;
         // Update local session

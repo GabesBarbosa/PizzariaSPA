@@ -25,6 +25,16 @@ h1 {
 
 .kpi-card {
   transition: box-shadow 0.2s, transform 0.2s;
+  height: 90px;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  mat-card-content {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 16px !important;
+  }
 
   &:hover {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
@@ -48,25 +58,38 @@ h1 {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .kpi-icon {
   font-size: 36px;
   width: 36px;
   height: 36px;
+  flex-shrink: 0;
+}
+
+.kpi-content {
+  min-width: 0;
+  flex: 1;
 }
 
 .kpi-value {
   font-size: 1.35rem;
   font-weight: 700;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .kpi-label {
   color: rgba(0, 0, 0, 0.54);
   font-size: 0.78rem;
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 // Charts
