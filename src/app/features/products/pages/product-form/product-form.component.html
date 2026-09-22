@@ -13,14 +13,12 @@
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Categoria</mat-label>
-        <mat-select formControlName="category">
-          <mat-option value="lanche">Lanche</mat-option>
-          <mat-option value="prato">Prato</mat-option>
-          <mat-option value="bebida">Bebida</mat-option>
-          <mat-option value="sobremesa">Sobremesa</mat-option>
-          <mat-option value="porcao">Porção</mat-option>
-          <mat-option value="outro">Outro</mat-option>
-        </mat-select>
+        <input matInput formControlName="category" [matAutocomplete]="autoCategoria"
+               placeholder="Ex: Lanches, Bebidas, Sobremesas...">
+        <mat-autocomplete #autoCategoria="matAutocomplete">
+          <mat-option *ngFor="let c of filteredCategoryOptions" [value]="c">{{ c }}</mat-option>
+        </mat-autocomplete>
+        <mat-hint>Escolha uma categoria existente ou digite uma nova. Use sempre a mesma grafia para não duplicar categorias no cardápio.</mat-hint>
         <mat-error *ngIf="form.get('category')?.hasError('required')">Categoria é obrigatória</mat-error>
       </mat-form-field>
 
@@ -29,6 +27,20 @@
         <input matInput formControlName="price" currencyMask placeholder="R$ 0,00">
         <mat-error *ngIf="form.get('price')?.hasError('required')">Preço é obrigatório</mat-error>
         <mat-error *ngIf="form.get('price')?.hasError('min')">Preço deve ser maior que zero</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Quantidade em estoque</mat-label>
+        <input matInput type="number" min="0" step="1" formControlName="stockQuantity"
+               placeholder="Deixe vazio para não controlar">
+        <mat-icon matSuffix>inventory_2</mat-icon>
+        <mat-hint>
+          Vazio = sem controle de estoque. Ao chegar em 0, o produto aparece como
+          <strong>Esgotado</strong> no cardápio e não pode ser pedido.
+        </mat-hint>
+        <mat-error *ngIf="form.get('stockQuantity')?.hasError('min')">
+          Estoque não pode ser negativo
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">

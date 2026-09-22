@@ -32,7 +32,9 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
 export class ProductListComponent implements OnInit {
   products: Product[] = [];
   loading = true;
-  displayedColumns = ['name', 'category', 'price', 'description', 'actions'];
+  /** Ids com ajuste de estoque em andamento — evita cliques duplicados. */
+  adjusting = new Set<string>();
+  displayedColumns = ['name', 'category', 'price', 'stock', 'description', 'actions'];
 
   constructor(
     private productService: ProductService,
@@ -75,6 +77,51 @@ export class ProductListComponent implements OnInit {
       outro: 'category'
     };
     return icons[category] || 'category';
+  }
+
+  /** Produto sem estoque cadastrado (null) nunca esgota. */
+  isTracked(product: Product): boolean {
+    return product.stockQuantity !== null && product.stockQuantity !== undefined;
+  }
+
+  isOutOfStock(product: Product): boolean {
+    return this.isTracked(product) && product.stockQuantity! <= 0;
+  }
+
+  isLowStock(product: Product): boolean {
+    return this.isTracked(product) && product.stockQuantity! > 0 && product.stockQuantity! <= 5;
+  }
+
+  getStockLabel(product: Product): string {
+    if (!this.isTracked(product)) return 'Sem controle';
+    if (product.stockQuantity! <= 0) return 'Esgotado';
+    return `${product.stockQuantity} un.`;
+  }
+
+  /** Ajuste rápido de estoque direto na listagem (+1 / -1). */
+  adjustStock(product: Product, delta: number): void {
+    if (!this.isTracked(product)) return;
+    if (delta < 0 && product.stockQuantity! <= 0) return;
+
+    this.adjusting.add(product.id);
+    this.productService.adjustStock(product.id, delta).subscribe({
+      next: (updated) => {
+        this.adjusting.delete(product.id);
+        product.stockQuantity = updated.stockQuantity;
+        this.products = [...this.products];
+        if (this.isOutOfStock(product)) {
+          this.snackBar.open(`${product.name} esgotou — marcado como indisponível no cardápio`, 'OK', { duration: 3500 });
+        }
+      },
+      error: () => {
+        this.adjusting.delete(product.id);
+        this.snackBar.open('Erro ao ajustar estoque', 'OK', { duration: 3000 });
+      }
+    });
+  }
+
+  isAdjusting(product: Product): boolean {
+    return this.adjusting.has(product.id);
   }
 
   deleteProduct(product: Product): void {

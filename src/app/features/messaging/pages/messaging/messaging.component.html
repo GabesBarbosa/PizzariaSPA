@@ -17,10 +17,10 @@
         <div>
           <strong>Modo do Chatbot</strong>
           <p class="mode-desc" *ngIf="chatbotMode === 'ai'">
-            IA ativa — Claude Haiku responde e processa pedidos automaticamente.
+            IA ativa — Claude responde dúvidas sobre cardápio, pagamento e entrega, e envia o link do cardápio pra fechar o pedido.
           </p>
           <p class="mode-desc" *ngIf="chatbotMode === 'triggers'">
-            Chat WhatsApp — Fluxo guiado por menus, sem IA.
+            Chat WhatsApp — Saudação fixa com o link do cardápio, sem IA.
           </p>
         </div>
       </div>
@@ -29,8 +29,8 @@
           <mat-button-toggle value="triggers">
             <mat-icon>flash_on</mat-icon> Chat WhatsApp
           </mat-button-toggle>
-          <mat-button-toggle value="ai" [disabled]="true" matTooltip="Em breve">
-            <mat-icon>lock</mat-icon> IA
+          <mat-button-toggle value="ai">
+            <mat-icon>smart_toy</mat-icon> IA
           </mat-button-toggle>
         </mat-button-toggle-group>
       </div>

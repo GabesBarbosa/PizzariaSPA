@@ -133,7 +133,7 @@ export class OrderDetailComponent implements OnInit {
     const items = this.order.items.map(i => {
       const name = i.productName || i.product?.name || 'Produto';
       const unitPrice = i.finalPrice ?? i.unitPrice ?? i.price ?? 0;
-      const variations = (i.variations || []).map(v => v.name || '').filter(Boolean).join(', ');
+      const variations = (i.variations || []).map(v => v.variationName || v.name || '').filter(Boolean).join(', ');
       const variationsLine = variations ? `<br><small style="color:#555">(${variations})</small>` : '';
       return `<tr>
         <td>${i.quantity}x ${name}${variationsLine}</td>
@@ -201,7 +201,7 @@ export class OrderDetailComponent implements OnInit {
   }
 
   getVariationNames(item: any): string {
-    return (item.variations || []).map((v: any) => v.name).filter(Boolean).join(', ');
+    return (item.variations || []).map((v: any) => v.variationName || v.name).filter(Boolean).join(', ');
   }
 
   private formatBrl(value: number): string {

@@ -172,8 +172,8 @@ export class OrderCreateComponent implements OnInit {
           const selectedVariations: ProductVariation[] = (item.variations || []).map(v => ({
             id: v.variationId,
             productId: item.productId,
-            name: v.name || '',
-            type: 'custom' as const,
+            name: v.variationName || v.name || '',
+            type: (v.variationType || 'custom') as ProductVariation['type'],
             priceModifier: v.priceModifier
           }));
           return {
@@ -399,7 +399,34 @@ export class OrderCreateComponent implements OnInit {
     this.filteredProducts = result;
   }
 
+  /** Recarrega o catálogo para refletir o estoque atual. */
+  private reloadProducts(): void {
+    this.productService.getAll().subscribe({
+      next: (products) => {
+        this.products = products;
+        this.filterProducts();
+      },
+      error: () => {}
+    });
+  }
+
+  /** Produto com estoque zerado: bloqueado no seletor do pedido. */
+  isOutOfStock(product: Product): boolean {
+    return product.stockQuantity !== null
+      && product.stockQuantity !== undefined
+      && product.stockQuantity <= 0;
+  }
+
+  getStockLabel(product: Product): string | null {
+    if (product.stockQuantity === null || product.stockQuantity === undefined) return null;
+    return product.stockQuantity <= 0 ? 'Esgotado' : `${product.stockQuantity} em estoque`;
+  }
+
   selectProduct(product: Product): void {
+    if (this.isOutOfStock(product)) {
+      this.snackBar.open(`${product.name} está esgotado.`, 'OK', { duration: 3000 });
+      return;
+    }
     this.selectedProduct = product;
     this.selectedVariationIds = new Set();
     this.productVariations = [];
@@ -539,8 +566,13 @@ export class OrderCreateComponent implements OnInit {
         this.snackBar.open(msg, 'OK', { duration: 3000 });
         this.router.navigate(['/pedidos']);
       },
-      error: () => {
+      error: (err) => {
         this.submitting = false;
+        // 409 = item sem estoque suficiente; a mensagem da API diz qual produto.
+        if (err?.status === 409) {
+          this.snackBar.open(err.error?.message || 'Item sem estoque.', 'OK', { duration: 5000 });
+          this.reloadProducts();
+        }
       }
     });
   }

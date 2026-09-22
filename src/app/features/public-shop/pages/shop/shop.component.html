@@ -18,104 +18,239 @@
 
   @else {
 
-    <!-- ─── HEADER ─── -->
-    <header class="shop-header">
-      <div class="shop-header-inner">
-        <div class="shop-logo-wrap">
-          <img src="assets/dashfoodSEMfundo.png" alt="DashFood" class="shop-logo-img">
-        </div>
-        <div class="shop-header-info">
-          <h1>{{ business()!.name }}</h1>
-          @if (tableNumber()) {
-            <span class="table-badge-header">
-              <mat-icon>table_restaurant</mat-icon> Mesa {{ tableNumber() }}
-            </span>
-          } @else if (business()!.originCity) {
-            <span class="shop-header-city">
-              <mat-icon>place</mat-icon>{{ business()!.originCity }}
-            </span>
-          }
-        </div>
-      </div>
-
-      @if (stage() === 'menu' && cartCount() > 0) {
-        <button mat-fab extended color="primary" class="cart-fab" (click)="goToCheckout()">
-          <mat-icon>shopping_cart</mat-icon>
-          <span class="cart-fab-label">
-            {{ cartCount() }} {{ cartCount() === 1 ? 'item' : 'itens' }} &nbsp;·&nbsp; {{ cartSubtotal() | brl }}
-          </span>
-        </button>
-      }
-    </header>
-
     <!-- ═══════════════════════════════════════════════ MENU ═══ -->
     @if (stage() === 'menu') {
 
-      <!-- Mais pedidos -->
-      @if (topProducts().length > 0) {
-        <section class="section-top">
-          <h2 class="section-title">
-            <mat-icon>trending_up</mat-icon> Mais pedidos
-          </h2>
-          <div class="top-scroll">
-            @for (p of topProducts(); track p.id) {
-              <div class="top-card" (click)="addToCart(p)">
-                <div class="top-card-img">
-                  @if (p.imageBase64) {
-                    <img [src]="p.imageBase64" [alt]="p.name">
-                  } @else {
-                    <mat-icon class="no-img-icon">fastfood</mat-icon>
-                  }
-                </div>
-                <div class="top-card-info">
-                  <span class="top-card-name">{{ p.name }}</span>
-                  <span class="top-card-price">{{ p.price | brl }}</span>
-                </div>
-              </div>
-            }
+      <!-- ─── Banner + identidade ─── -->
+      <header class="shop-hero">
+        <div class="hero-banner"></div>
+
+        <div class="hero-body">
+          <div class="hero-logo">
+            <img src="assets/dashfoodSEMfundo.png" alt="Logo do estabelecimento">
           </div>
+
+          <h1 class="hero-name">{{ business()!.name }}</h1>
+
+          <div class="hero-meta">
+            @if (business()!.originCity) {
+              <span class="meta-item"><mat-icon>place</mat-icon>{{ business()!.originCity }}</span>
+            }
+            <span class="meta-dot">·</span>
+            <span class="meta-item meta-open"><mat-icon>schedule</mat-icon>Aberto agora</span>
+          </div>
+
+          <!-- Tiles de informação -->
+          <div class="hero-tiles">
+            <div class="hero-tile">
+              <mat-icon>{{ tableNumber() ? 'table_restaurant' : 'two_wheeler' }}</mat-icon>
+              <span class="tile-value">{{ tableNumber() ? 'Mesa ' + tableNumber() : 'Entrega' }}</span>
+              <span class="tile-label">{{ tableNumber() ? 'no local' : 'ou retirada' }}</span>
+            </div>
+            <div class="hero-tile">
+              <mat-icon>restaurant_menu</mat-icon>
+              <span class="tile-value">{{ categories().length }}</span>
+              <span class="tile-label">{{ categories().length === 1 ? 'categoria' : 'categorias' }}</span>
+            </div>
+            <div class="hero-tile">
+              <mat-icon>payments</mat-icon>
+              <span class="tile-value">{{ paymentMethods().length }}</span>
+              <span class="tile-label">formas de pagto.</span>
+            </div>
+          </div>
+
+          @if (tableNumber()) {
+            <div class="hero-alert">
+              <mat-icon>info</mat-icon>
+              <span>Você está na <strong>mesa {{ tableNumber() }}</strong>. O pedido será entregue direto na sua mesa.</span>
+            </div>
+          }
+        </div>
+
+        <!-- Abas -->
+        <nav class="hero-tabs">
+          <button class="hero-tab" [class.active]="activeTab() === 'menu'" (click)="activeTab.set('menu')">
+            Cardápio
+          </button>
+          <button class="hero-tab" [class.active]="activeTab() === 'info'" (click)="activeTab.set('info')">
+            Informações
+          </button>
+        </nav>
+      </header>
+
+      <!-- ─── Aba: informações ─── -->
+      @if (activeTab() === 'info') {
+        <section class="info-panel">
+          <div class="info-row">
+            <mat-icon>storefront</mat-icon>
+            <div>
+              <span class="info-label">Estabelecimento</span>
+              <span class="info-value">{{ business()!.name }}</span>
+            </div>
+          </div>
+          @if (business()!.originCity) {
+            <div class="info-row">
+              <mat-icon>place</mat-icon>
+              <div>
+                <span class="info-label">Localização</span>
+                <span class="info-value">{{ business()!.originCity }}</span>
+              </div>
+            </div>
+          }
+          <div class="info-row">
+            <mat-icon>payments</mat-icon>
+            <div>
+              <span class="info-label">Formas de pagamento</span>
+              <span class="info-value">
+                {{ paymentMethods().length ? '' : 'Não informado' }}
+              </span>
+              <div class="info-chips">
+                @for (pm of paymentMethods(); track pm.key) {
+                  <span class="info-chip">{{ pm.label }}</span>
+                }
+              </div>
+            </div>
+          </div>
+          @if (business()!.deliveryZones.length) {
+            <div class="info-row">
+              <mat-icon>two_wheeler</mat-icon>
+              <div>
+                <span class="info-label">Taxas de entrega</span>
+                @for (z of business()!.deliveryZones; track z.maxKm) {
+                  <span class="info-value">até {{ z.maxKm }} km — {{ z.fee | brl }}</span>
+                }
+              </div>
+            </div>
+          }
         </section>
       }
 
-      <!-- Categorias -->
-      @if (categories().length > 1) {
-        <div class="category-bar">
-          @for (cat of categories(); track cat) {
-            <button class="cat-btn" [class.active]="activeCategory() === cat" (click)="activeCategory.set(cat)">
-              {{ cat }}
-            </button>
-          }
-        </div>
-      }
+      <!-- ─── Aba: cardápio ─── -->
+      @if (activeTab() === 'menu') {
 
-      <!-- Grid de produtos -->
-      <section class="menu-section">
-        @for (product of menuByCategory()[activeCategory()] || []; track product.id) {
-          <div class="product-card">
-            <div class="product-img-wrap">
-              @if (product.imageBase64) {
-                <img class="product-img" [src]="product.imageBase64" [alt]="product.name">
-              } @else {
-                <div class="product-img-placeholder">
-                  <mat-icon>fastfood</mat-icon>
+        <!-- Busca -->
+        <div class="search-wrap">
+          <div class="search-box">
+            <mat-icon>search</mat-icon>
+            <input type="text" placeholder="Buscar no cardápio"
+                   [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+            @if (searchTerm()) {
+              <button class="search-clear" (click)="searchTerm.set('')">
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Destaques -->
+        @if (topProducts().length > 0 && !searchTerm()) {
+          <section class="section-top">
+            <h2 class="section-title">
+              <mat-icon>local_fire_department</mat-icon> Mais pedidos
+            </h2>
+            <div class="top-scroll">
+              @for (p of topProducts(); track p.id) {
+                <div class="top-card" [class.sold-out]="isUnavailable(p)" (click)="addToCart(p)">
+                  <div class="top-card-img">
+                    @if (p.imageBase64) {
+                      <img [src]="p.imageBase64" [alt]="p.name">
+                    } @else {
+                      <mat-icon class="no-img-icon">fastfood</mat-icon>
+                    }
+                    @if (isUnavailable(p)) {
+                      <span class="top-card-badge sold-out-badge">Esgotado</span>
+                    } @else {
+                      <span class="top-card-badge">Destaque</span>
+                    }
+                  </div>
+                  <div class="top-card-info">
+                    <span class="top-card-name">{{ p.name }}</span>
+                    @if (p.description) {
+                      <span class="top-card-desc">{{ p.description }}</span>
+                    }
+                    <span class="top-card-price">{{ p.price | brl }}</span>
+                  </div>
                 </div>
               }
             </div>
-            <div class="product-body">
+          </section>
+        }
+
+        <!-- Categorias -->
+        @if (categories().length > 1 && !searchTerm()) {
+          <div class="category-bar">
+            @for (cat of categories(); track cat) {
+              <button class="cat-btn" [class.active]="activeCategory() === cat" (click)="activeCategory.set(cat)">
+                {{ cat }}
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Lista de produtos -->
+        <section class="menu-section">
+          @if (!searchTerm()) {
+            <h2 class="menu-section-title">{{ activeCategory() }}</h2>
+          }
+
+          @for (product of visibleProducts(); track product.id) {
+            <button type="button" class="product-row"
+                    [class.sold-out]="isUnavailable(product)"
+                    [disabled]="isUnavailable(product)"
+                    (click)="addToCart(product)">
               <div class="product-info">
-                <h3 class="product-name">{{ product.name }}</h3>
+                <h3 class="product-name">
+                  {{ product.name }}
+                  @if (isUnavailable(product)) {
+                    <span class="sold-out-tag">Esgotado</span>
+                  }
+                </h3>
                 @if (product.description) {
                   <p class="product-desc">{{ product.description }}</p>
                 }
                 <strong class="product-price">{{ product.price | brl }}</strong>
+                @if (isUnavailable(product)) {
+                  <span class="stock-note">Indisponível no momento</span>
+                } @else if (product.stockQuantity !== null && product.stockQuantity !== undefined && product.stockQuantity <= 5) {
+                  <span class="stock-note low">Últimas {{ product.stockQuantity }} unidades</span>
+                }
               </div>
-              <button class="add-btn" (click)="addToCart(product)">
-                <mat-icon>add</mat-icon>
-              </button>
+              <div class="product-img-wrap">
+                @if (product.imageBase64) {
+                  <img class="product-img" [src]="product.imageBase64" [alt]="product.name">
+                } @else {
+                  <div class="product-img-placeholder">
+                    <mat-icon>fastfood</mat-icon>
+                  </div>
+                }
+                @if (isUnavailable(product)) {
+                  <span class="product-add disabled"><mat-icon>remove_shopping_cart</mat-icon></span>
+                } @else {
+                  <span class="product-add"><mat-icon>add</mat-icon></span>
+                }
+              </div>
+            </button>
+          } @empty {
+            <div class="menu-empty">
+              <mat-icon>search_off</mat-icon>
+              <p>Nenhum item encontrado{{ searchTerm() ? ' para "' + searchTerm() + '"' : '' }}.</p>
             </div>
-          </div>
-        }
-      </section>
+          }
+        </section>
+      }
+
+      <p class="shop-footer">Desenvolvido por DashFood</p>
+
+      <!-- Barra fixa do carrinho -->
+      @if (cartCount() > 0) {
+        <div class="cart-bar">
+          <button class="cart-bar-btn" (click)="goToCheckout()">
+            <span class="cart-bar-count">{{ cartCount() }}</span>
+            <span class="cart-bar-label">Ver sacola</span>
+            <span class="cart-bar-total">{{ cartSubtotal() | brl }}</span>
+          </button>
+        </div>
+      }
 
     } <!-- /menu -->
 
@@ -131,7 +266,7 @@
         <div class="checkout-card">
           <div class="checkout-card-title">Seu pedido</div>
 
-          @for (item of cart(); track item.product.id; let i = $index) {
+          @for (item of cart(); track item.key; let i = $index) {
             <div class="cart-item">
               <div class="cart-item-img">
                 @if (item.product.imageBase64) {
@@ -142,14 +277,17 @@
               </div>
               <div class="cart-item-info">
                 <span class="cart-item-name">{{ item.product.name }}</span>
-                <span class="cart-item-unit">{{ item.product.price | brl }} cada</span>
+                @if (item.selectedVariations.length > 0) {
+                  <span class="cart-item-addons">+ {{ variationNames(item.selectedVariations) }}</span>
+                }
+                <span class="cart-item-unit">{{ unitPrice(item.product, item.selectedVariations) | brl }} cada</span>
               </div>
               <div class="cart-item-qty">
                 <button mat-icon-button (click)="changeQty(i, -1)"><mat-icon>remove</mat-icon></button>
                 <span>{{ item.quantity }}</span>
                 <button mat-icon-button (click)="changeQty(i, 1)"><mat-icon>add</mat-icon></button>
               </div>
-              <strong class="cart-item-total">{{ item.quantity * item.product.price | brl }}</strong>
+              <strong class="cart-item-total">{{ item.quantity * unitPrice(item.product, item.selectedVariations) | brl }}</strong>
             </div>
           }
 
@@ -329,6 +467,61 @@
         <button mat-stroked-button color="primary" (click)="stage.set('menu'); cart.set([])">
           <mat-icon>restaurant_menu</mat-icon> Novo pedido
         </button>
+      </div>
+    }
+
+    <!-- ─── Seletor de variações (tamanhos, adicionais, remoções) ─── -->
+    @if (pickingProduct(); as product) {
+      <div class="variation-overlay" (click)="closeVariationPicker()">
+        <div class="variation-sheet" (click)="$event.stopPropagation()">
+          <div class="variation-sheet-header">
+            <h3>{{ product.name }}</h3>
+            <button mat-icon-button type="button" (click)="closeVariationPicker()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          @if (product.description) {
+            <p class="variation-sheet-desc">{{ product.description }}</p>
+          }
+
+          <div class="variation-sheet-body">
+            @for (group of pickingGroups(); track group.type) {
+              <div class="variation-group">
+                <p class="variation-group-title">{{ group.label }}</p>
+                @for (v of group.items; track v.id) {
+                  <div class="variation-option" [class.selected]="isVariationPicked(v)" (click)="toggleVariation(v, group.type)">
+                    <mat-icon class="variation-option-check">
+                      {{ isVariationPicked(v)
+                        ? (group.type === 'size' ? 'radio_button_checked' : 'check_box')
+                        : (group.type === 'size' ? 'radio_button_unchecked' : 'check_box_outline_blank') }}
+                    </mat-icon>
+                    <span class="variation-option-name">{{ v.name }}</span>
+                    @if (v.priceModifier !== 0) {
+                      <span class="variation-option-price">
+                        {{ v.priceModifier > 0 ? '+' : '' }}{{ v.priceModifier | brl }}
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="variation-sheet-footer">
+            <div class="variation-qty">
+              <button mat-icon-button type="button" (click)="changePickingQuantity(-1)" [disabled]="pickingQuantity() <= 1">
+                <mat-icon>remove</mat-icon>
+              </button>
+              <span>{{ pickingQuantity() }}</span>
+              <button mat-icon-button type="button" (click)="changePickingQuantity(1)">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+            <button mat-flat-button color="primary" type="button" class="variation-confirm-btn" (click)="confirmVariationPick()">
+              Adicionar — {{ pickingQuantity() * pickingUnitPrice() | brl }}
+            </button>
+          </div>
+        </div>
       </div>
     }
 

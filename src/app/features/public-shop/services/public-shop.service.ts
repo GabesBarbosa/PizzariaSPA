@@ -24,6 +24,13 @@ export interface PublicBusinessDto {
   originCity: string | null;
 }
 
+export interface PublicVariationDto {
+  id: string;
+  name: string;
+  type: 'size' | 'addon' | 'removal' | 'custom' | string;
+  priceModifier: number;
+}
+
 export interface PublicProductDto {
   id: string;
   name: string;
@@ -31,7 +38,12 @@ export interface PublicProductDto {
   price: number;
   category: string;
   imageBase64?: string | null;
+  /** null = produto sem controle de estoque; 0 = esgotado. */
+  stockQuantity?: number | null;
+  /** false = esgotado; o cardápio mostra o item, mas bloqueia o pedido. */
+  available?: boolean;
   totalSold?: number;
+  variations?: PublicVariationDto[];
 }
 
 export interface PublicMenuDto {
@@ -69,6 +81,11 @@ export interface PublicOrderItem {
   productId: string;
   quantity: number;
   variations?: { variationId: string }[];
+}
+
+export function getVariationTypeLabel(type: string): string {
+  const labels: Record<string, string> = { size: 'Tamanho', addon: 'Adicional', removal: 'Remoção', custom: 'Personalizado' };
+  return labels[type] || type;
 }
 
 export interface CreatePublicOrderDto {

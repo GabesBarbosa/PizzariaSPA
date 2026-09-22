@@ -20,7 +20,7 @@
 
   <ng-container *ngIf="stats && !loading">
     <div class="kpi-grid">
-      <mat-card class="kpi-card">
+      <mat-card class="kpi-card" routerLink="/pedidos" [matTooltip]="'Ver todos os pedidos'">
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color: #1976d2">receipt_long</mat-icon>
@@ -32,7 +32,7 @@
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="kpi-card">
+      <mat-card class="kpi-card" routerLink="/pedidos" [matTooltip]="'Ver pedidos pendentes'">
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color: #f57c00">hourglass_empty</mat-icon>
@@ -44,7 +44,7 @@
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="kpi-card">
+      <mat-card class="kpi-card" routerLink="/dashboard" [matTooltip]="'Ver análise de faturamento'">
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color: #388e3c">attach_money</mat-icon>
@@ -56,7 +56,7 @@
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="kpi-card">
+      <mat-card class="kpi-card" routerLink="/clientes" [matTooltip]="'Ver todos os clientes'">
         <mat-card-content>
           <div class="kpi">
             <mat-icon class="kpi-icon" style="color: #7b1fa2">people</mat-icon>

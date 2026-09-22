@@ -9,6 +9,63 @@
   width: 100%;
 }
 
+.stock-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stock-actions {
+  display: inline-flex;
+
+  .mat-mdc-icon-button {
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+  }
+
+  .mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.stock-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  background: #e0f2f1;
+  color: #00695c;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.low {
+    background: #fff8e1;
+    color: #ad6800;
+  }
+
+  &.out {
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  &.untracked {
+    background: #eceff1;
+    color: #546e7a;
+    font-weight: 500;
+  }
+
+  .mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
 .category-chip {
   display: inline-flex;
   align-items: center;

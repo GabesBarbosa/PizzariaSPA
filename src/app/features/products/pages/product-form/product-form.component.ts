@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -24,7 +25,7 @@ import { BrlPipe } from '../../../../shared/utils/brl.pipe';
   imports: [
     CommonModule, ReactiveFormsModule, FormsModule, RouterLink,
     MatCardModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatButtonModule, MatIconModule, MatSnackBarModule,
+    MatSelectModule, MatAutocompleteModule, MatButtonModule, MatIconModule, MatSnackBarModule,
     MatDividerModule, MatListModule, MatChipsModule,
     CurrencyMaskDirective, BrlPipe
   ],
@@ -45,6 +46,9 @@ export class ProductFormComponent implements OnInit {
 
   imagePreview: string | null = null;
 
+  /** Sugestões de categoria: começa com um padrão e ganha as categorias já usadas pelo negócio. */
+  categoryOptions: string[] = ['lanche', 'prato', 'bebida', 'sobremesa', 'porcao', 'outro'];
+
   readonly variationTypes = [
     { value: 'size', label: 'Tamanho' },
     { value: 'addon', label: 'Adicional' },
@@ -63,10 +67,22 @@ export class ProductFormComponent implements OnInit {
   ngOnInit(): void {
     this.form = this.fb.group({
       name: ['', Validators.required],
-      category: ['lanche', Validators.required],
+      category: ['', Validators.required],
       price: [null, [Validators.required, Validators.min(0.01)]],
       description: [''],
+      // Vazio = produto sem controle de estoque (nunca esgota no cardápio).
+      stockQuantity: [null as number | null, [Validators.min(0)]],
       imageBase64: [null as string | null]
+    });
+
+    // Junta as categorias já usadas pelo negócio às sugestões padrão, preservando a grafia exata
+    // cadastrada (evita que editar um produto force a categoria pra uma das opções fixas antigas).
+    this.productService.getAll().subscribe({
+      next: (products) => {
+        const used = products.map(p => p.category).filter((c): c is string => !!c && c.trim().length > 0);
+        this.categoryOptions = Array.from(new Set([...this.categoryOptions, ...used]));
+      },
+      error: () => {}
     });
 
     this.variationForm = this.fb.group({
@@ -85,6 +101,7 @@ export class ProductFormComponent implements OnInit {
             category: product.category,
             price: product.price,
             description: product.description || '',
+            stockQuantity: product.stockQuantity ?? null,
             imageBase64: product.imageBase64 || null
           });
           this.imagePreview = product.imageBase64 || null;
@@ -112,13 +129,32 @@ export class ProductFormComponent implements OnInit {
     });
   }
 
+  /** Sugestões de categoria filtradas pelo que já foi digitado no campo. */
+  get filteredCategoryOptions(): string[] {
+    const typed = (this.form?.get('category')?.value || '').toString().trim().toLowerCase();
+    if (!typed) return this.categoryOptions;
+    return this.categoryOptions.filter(c => c.toLowerCase().includes(typed));
+  }
+
   onSubmit(): void {
     if (this.form.invalid) return;
     this.saving = true;
 
+    const raw = this.form.value;
+    const stock = raw.stockQuantity;
+    const payload = {
+      ...raw,
+      // Preserva a grafia exata (só tira espaços nas pontas) pra não criar categoria duplicada no cardápio.
+      category: (raw.category || '').toString().trim(),
+      // Campo vazio significa "não controlar estoque" — vai como null para a API.
+      stockQuantity: stock === null || stock === undefined || stock === ''
+        ? null
+        : Math.max(0, Math.floor(Number(stock)))
+    };
+
     const obs = this.isEditMode
-      ? this.productService.update(this.productId!, this.form.value)
-      : this.productService.create(this.form.value);
+      ? this.productService.update(this.productId!, payload)
+      : this.productService.create(payload);
 
     obs.subscribe({
       next: () => {

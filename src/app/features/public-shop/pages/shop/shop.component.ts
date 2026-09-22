@@ -20,12 +20,21 @@ import {
   PublicShopService,
   PublicBusinessDto,
   PublicProductDto,
+  PublicVariationDto,
   PaymentMethodDto,
+  getVariationTypeLabel,
 } from '../../services/public-shop.service';
 
 interface CartEntry {
+  /** Identifica a linha do carrinho (produto + combinação de variações) pra track do @for. */
+  key: string;
   product: PublicProductDto;
   quantity: number;
+  selectedVariations: PublicVariationDto[];
+}
+
+function cartEntryKey(productId: string, variations: PublicVariationDto[]): string {
+  return `${productId}::${variations.map(v => v.id).sort().join(',')}`;
 }
 
 type Stage = 'menu' | 'checkout' | 'success';
@@ -57,9 +66,29 @@ export class ShopComponent implements OnInit {
   activeCategory = signal<string>('');
   topProducts = signal<PublicProductDto[]>([]);
 
+  /* Aba do cabeçalho: cardápio x informações do estabelecimento */
+  activeTab = signal<'menu' | 'info'>('menu');
+  searchTerm = signal('');
+
+  /** Busca global no cardápio; sem termo, cai na categoria selecionada. */
+  visibleProducts = computed<PublicProductDto[]>(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    if (!term) return this.menuByCategory()[this.activeCategory()] ?? [];
+    return Object.values(this.menuByCategory())
+      .flat()
+      .filter(p =>
+        p.name.toLowerCase().includes(term) ||
+        (p.description ?? '').toLowerCase().includes(term));
+  });
+
   cart = signal<CartEntry[]>([]);
   cartCount = computed(() => this.cart().reduce((s, i) => s + i.quantity, 0));
-  cartSubtotal = computed(() => this.cart().reduce((s, i) => s + i.quantity * i.product.price, 0));
+  cartSubtotal = computed(() => this.cart().reduce((s, i) => s + i.quantity * this.unitPrice(i.product, i.selectedVariations), 0));
+
+  /* ─── Seletor de variações (adicionais, tamanhos, etc.) ─── */
+  pickingProduct = signal<PublicProductDto | null>(null);
+  pickingVariationIds = signal<Set<string>>(new Set());
+  pickingQuantity = signal(1);
 
   deliveryType = signal<'delivery' | 'pickup'>('delivery');
 
@@ -140,19 +169,7 @@ export class ShopComponent implements OnInit {
       },
     });
 
-    this.shop.getMenu(this.slug).subscribe({
-      next: (menu) => {
-        const cats = Object.keys(menu.categories).sort();
-        this.menuByCategory.set(menu.categories);
-        this.categories.set(cats);
-        this.activeCategory.set(cats[0] || '');
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.snack.open('Erro ao carregar cardápio.', 'OK', { duration: 4000 });
-      },
-    });
+    this.loadMenu();
 
     this.shop.getTopProducts(this.slug).subscribe({
       next: (tops) => this.topProducts.set(tops),
@@ -160,23 +177,96 @@ export class ShopComponent implements OnInit {
     });
   }
 
+  /** Carrega o cardápio; esgotados vão para o fim de cada categoria. */
+  private loadMenu(keepCategory = false): void {
+    this.shop.getMenu(this.slug).subscribe({
+      next: (menu) => {
+        const ordered: Record<string, PublicProductDto[]> = {};
+        for (const [cat, items] of Object.entries(menu.categories)) {
+          ordered[cat] = [...items].sort(
+            (a, b) => Number(a.available === false) - Number(b.available === false)
+          );
+        }
+        const cats = Object.keys(ordered).sort();
+        this.menuByCategory.set(ordered);
+        this.categories.set(cats);
+        if (!keepCategory || !cats.includes(this.activeCategory())) {
+          this.activeCategory.set(cats[0] || '');
+        }
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.snack.open('Erro ao carregar cardápio.', 'OK', { duration: 4000 });
+      },
+    });
+  }
+
   /* ─── Cart ─── */
 
+  /** Produto esgotado: existe no cardápio, mas não entra na sacola. */
+  isUnavailable(product: PublicProductDto): boolean {
+    return product.available === false;
+  }
+
+  /** Limite de unidades: só existe para produtos com estoque controlado. */
+  private stockLimit(product: PublicProductDto): number | null {
+    return product.stockQuantity === null || product.stockQuantity === undefined
+      ? null
+      : product.stockQuantity;
+  }
+
+  /** Soma as unidades já na sacola desse produto, somando todas as combinações de adicionais. */
+  private quantityInCart(productId: string): number {
+    return this.cart()
+      .filter(i => i.product.id === productId)
+      .reduce((s, i) => s + i.quantity, 0);
+  }
+
+  /** Preço unitário do produto já somando os modificadores das variações escolhidas. */
+  unitPrice(product: PublicProductDto, variations: PublicVariationDto[]): number {
+    return product.price + variations.reduce((s, v) => s + v.priceModifier, 0);
+  }
+
+  /** Toque no item do cardápio: abre o seletor de adicionais/tamanhos quando existem, senão adiciona direto. */
   addToCart(product: PublicProductDto): void {
+    if (this.isUnavailable(product)) {
+      this.snack.open(`${product.name} está esgotado no momento.`, 'OK', { duration: 3000 });
+      return;
+    }
+
+    if (product.variations?.length) {
+      this.openVariationPicker(product);
+      return;
+    }
+
     const current = this.cart();
-    const idx = current.findIndex(i => i.product.id === product.id);
+    const idx = current.findIndex(i => i.product.id === product.id && i.selectedVariations.length === 0);
+    const limit = this.stockLimit(product);
+
     if (idx >= 0) {
+      if (limit !== null && current[idx].quantity >= limit) {
+        this.snack.open(`Restam apenas ${limit} unidade(s) de ${product.name}.`, 'OK', { duration: 3000 });
+        return;
+      }
       const next = [...current];
       next[idx] = { ...next[idx], quantity: next[idx].quantity + 1 };
       this.cart.set(next);
     } else {
-      this.cart.set([...current, { product, quantity: 1 }]);
+      this.cart.set([...current, { key: cartEntryKey(product.id, []), product, quantity: 1, selectedVariations: [] }]);
     }
   }
 
   changeQty(index: number, delta: number): void {
     const next = [...this.cart()];
     const item = { ...next[index] };
+    const limit = this.stockLimit(item.product);
+
+    if (delta > 0 && limit !== null && item.quantity >= limit) {
+      this.snack.open(`Restam apenas ${limit} unidade(s) de ${item.product.name}.`, 'OK', { duration: 3000 });
+      return;
+    }
+
     item.quantity += delta;
     if (item.quantity <= 0) {
       next.splice(index, 1);
@@ -184,6 +274,98 @@ export class ShopComponent implements OnInit {
       next[index] = item;
     }
     this.cart.set(next);
+  }
+
+  /* ─── Seletor de variações ─── */
+
+  openVariationPicker(product: PublicProductDto): void {
+    this.pickingProduct.set(product);
+    this.pickingVariationIds.set(new Set());
+    this.pickingQuantity.set(1);
+  }
+
+  closeVariationPicker(): void {
+    this.pickingProduct.set(null);
+  }
+
+  /** Variações agrupadas por tipo, na ordem em que aparecem no produto. */
+  pickingGroups = computed<{ type: string; label: string; items: PublicVariationDto[] }[]>(() => {
+    const product = this.pickingProduct();
+    if (!product?.variations?.length) return [];
+    const order: string[] = [];
+    const byType = new Map<string, PublicVariationDto[]>();
+    for (const v of product.variations) {
+      if (!byType.has(v.type)) { byType.set(v.type, []); order.push(v.type); }
+      byType.get(v.type)!.push(v);
+    }
+    return order.map(type => ({ type, label: getVariationTypeLabel(type), items: byType.get(type)! }));
+  });
+
+  isVariationPicked(v: PublicVariationDto): boolean {
+    return this.pickingVariationIds().has(v.id);
+  }
+
+  /** Tamanho é escolha única (como um rádio); os demais tipos aceitam múltipla escolha. */
+  toggleVariation(v: PublicVariationDto, groupType: string): void {
+    const ids = new Set(this.pickingVariationIds());
+    const product = this.pickingProduct();
+    if (groupType === 'size' && product) {
+      for (const other of product.variations || []) {
+        if (other.type === 'size') ids.delete(other.id);
+      }
+      if (!this.pickingVariationIds().has(v.id)) ids.add(v.id);
+    } else {
+      ids.has(v.id) ? ids.delete(v.id) : ids.add(v.id);
+    }
+    this.pickingVariationIds.set(ids);
+  }
+
+  pickingSelectedVariations = computed<PublicVariationDto[]>(() => {
+    const product = this.pickingProduct();
+    if (!product?.variations) return [];
+    const ids = this.pickingVariationIds();
+    return product.variations.filter(v => ids.has(v.id));
+  });
+
+  pickingUnitPrice = computed(() => {
+    const product = this.pickingProduct();
+    return product ? this.unitPrice(product, this.pickingSelectedVariations()) : 0;
+  });
+
+  changePickingQuantity(delta: number): void {
+    this.pickingQuantity.update(q => Math.max(1, q + delta));
+  }
+
+  confirmVariationPick(): void {
+    const product = this.pickingProduct();
+    if (!product) return;
+
+    const limit = this.stockLimit(product);
+    const already = this.quantityInCart(product.id);
+    if (limit !== null && already + this.pickingQuantity() > limit) {
+      const remaining = Math.max(0, limit - already);
+      this.snack.open(`Restam apenas ${remaining} unidade(s) de ${product.name}.`, 'OK', { duration: 3000 });
+      return;
+    }
+
+    const variations = this.pickingSelectedVariations();
+    const key = cartEntryKey(product.id, variations);
+    const current = this.cart();
+    const idx = current.findIndex(i => i.key === key);
+
+    if (idx >= 0) {
+      const next = [...current];
+      next[idx] = { ...next[idx], quantity: next[idx].quantity + this.pickingQuantity() };
+      this.cart.set(next);
+    } else {
+      this.cart.set([...current, { key, product, quantity: this.pickingQuantity(), selectedVariations: variations }]);
+    }
+
+    this.closeVariationPicker();
+  }
+
+  variationNames(variations: PublicVariationDto[]): string {
+    return variations.map(v => v.name).join(', ');
   }
 
   removeFromCart(index: number): void {
@@ -313,7 +495,11 @@ export class ShopComponent implements OnInit {
 
       this.shop.createOrder(this.slug, {
         customerId: customerId as any,
-        items: this.cart().map(c => ({ productId: c.product.id, quantity: c.quantity })),
+        items: this.cart().map(c => ({
+          productId: c.product.id,
+          quantity: c.quantity,
+          variations: c.selectedVariations.map(v => ({ variationId: v.id })),
+        })),
         paymentMethod: v.paymentMethod,
         changeFor: v.changeFor ? parseFloat(v.changeFor) : undefined,
         deliveryAddress: address,
@@ -327,8 +513,15 @@ export class ShopComponent implements OnInit {
           this.cart.set([]);
           this.stage.set('success');
         },
-        error: () => {
+        error: (err) => {
           this.submitting.set(false);
+          // 409 = algum item esgotou entre a montagem da sacola e o envio do pedido.
+          if (err?.status === 409) {
+            this.snack.open(err.error?.message || 'Um item da sacola esgotou.', 'OK', { duration: 5000 });
+            this.loadMenu(true);
+            this.stage.set('menu');
+            return;
+          }
           this.snack.open('Erro ao finalizar o pedido.', 'OK', { duration: 4000 });
         },
       });

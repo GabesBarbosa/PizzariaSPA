@@ -150,10 +150,14 @@
           <div *ngFor="let p of filteredProducts"
                class="product-card"
                [class.product-card--selected]="selectedProduct?.id === p.id"
+               [class.product-card--sold-out]="isOutOfStock(p)"
                (click)="selectProduct(p)">
             <div class="product-card__name">{{ p.name }}</div>
             <div class="product-card__category">{{ p.category }}</div>
             <div class="product-card__price">{{ p.price | brl }}</div>
+            <div class="product-card__stock"
+                 [class.out]="isOutOfStock(p)"
+                 *ngIf="getStockLabel(p) as stockLabel">{{ stockLabel }}</div>
           </div>
           <p *ngIf="filteredProducts.length === 0" class="no-products">
             Nenhum produto encontrado.

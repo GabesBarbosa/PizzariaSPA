@@ -9,6 +9,10 @@ export type PaymentMethod = 'dinheiro' | 'cartao_credito' | 'cartao_debito' | 'p
 
 export interface OrderItemVariation {
   variationId: string;
+  /** Nome da variação no momento do pedido (a API retorna como `variationName`, join com ProductVariations). */
+  variationName?: string;
+  variationType?: string;
+  /** @deprecated a API não envia esse campo pra itens de pedido; use `variationName`. Mantido por compatibilidade. */
   name?: string;
   priceModifier: number;
 }

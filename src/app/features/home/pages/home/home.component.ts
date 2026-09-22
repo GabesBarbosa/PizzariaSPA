@@ -8,6 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { DashboardStats } from '../../../../shared/models';
 import { DashboardService, DashboardPeriod } from '../../../../core/services/dashboard.service';
@@ -20,7 +21,7 @@ import { BrlPipe } from '../../../../shared/utils/brl.pipe';
     CommonModule, RouterLink,
     MatCardModule, MatIconModule, MatButtonModule,
     MatTableModule, MatChipsModule, MatProgressSpinnerModule,
-    MatButtonToggleModule, BrlPipe
+    MatButtonToggleModule, MatTooltipModule, BrlPipe
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'

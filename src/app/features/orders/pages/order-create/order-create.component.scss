@@ -189,6 +189,26 @@
     font-size: 0.95rem;
     color: #388e3c;
   }
+
+  &__stock {
+    margin-top: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.55);
+
+    &.out { color: #c62828; }
+  }
+
+  &--sold-out {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: #fafafa;
+
+    &:hover {
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: none;
+    }
+  }
 }
 
 .no-products {

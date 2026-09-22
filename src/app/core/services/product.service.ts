@@ -36,6 +36,20 @@ export class ProductService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
+  /** Define a quantidade absoluta em estoque (null = não controlar estoque). */
+  setStock(id: string, stockQuantity: number | null): Observable<Product> {
+    return this.http.patch<Product>(`${this.baseUrl}/${id}/stock`, { stockQuantity });
+  }
+
+  /** Soma/subtrai unidades do estoque (entrada de mercadoria, correção). */
+  adjustStock(id: string, delta: number): Observable<Product> {
+    return this.http.patch<Product>(`${this.baseUrl}/${id}/stock`, { delta });
+  }
+
+  getLowStock(threshold = 0): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.baseUrl}/estoque-baixo?threshold=${threshold}`);
+  }
+
   getVariations(productId: string): Observable<ProductVariation[]> {
     return this.http.get<ProductVariation[]>(`${this.baseUrl}/${productId}/variations`);
   }
