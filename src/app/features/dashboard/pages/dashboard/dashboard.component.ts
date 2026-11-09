@@ -4,18 +4,40 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { forkJoin } from 'rxjs';
 
-import { DashboardService, DashboardPeriod } from '../../../../core/services/dashboard.service';
+import { DashboardService, DashboardPeriod, ExportSummary } from '../../../../core/services/dashboard.service';
+import { AuthService } from '../../../../core/services/auth.service';
+
+/** Data de hoje (horário local) no formato AAAA-MM-DD, usado pelos campos type="date". */
+function isoDate(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function brDate(iso: string): string {
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function escapeHtml(s: string): string {
+  return (s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+}
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, FormsModule,
     MatCardModule, MatIconModule, MatProgressSpinnerModule,
-    MatButtonToggleModule, NgApexchartsModule
+    MatButtonToggleModule, MatButtonModule, MatFormFieldModule, MatInputModule,
+    MatSnackBarModule, NgApexchartsModule
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -60,7 +82,137 @@ export class DashboardComponent implements OnInit {
 
   chartsReady = false;
 
-  constructor(private dashboardService: DashboardService) {}
+  // Exportação de relatórios (RF22 / RF25) — padrão: do dia 1º do mês até hoje
+  exportFrom = isoDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  exportTo = isoDate(new Date());
+  exportingCsv = false;
+  exportingPdf = false;
+
+  constructor(
+    private dashboardService: DashboardService,
+    private auth: AuthService,
+    private snack: MatSnackBar,
+  ) {}
+
+  downloadCsv(): void {
+    this.exportingCsv = true;
+    this.dashboardService.exportOrdersCsv(this.exportFrom, this.exportTo).subscribe({
+      next: (blob) => {
+        this.exportingCsv = false;
+        // Link temporário clicado por código para baixar o arquivo.
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pedidos_${this.exportFrom}_${this.exportTo}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      },
+      error: (err) => {
+        this.exportingCsv = false;
+        this.showExportError(err);
+      },
+    });
+  }
+
+  printSummary(): void {
+    // Abre a janela já no clique (antes da resposta), senão o navegador bloqueia o pop-up.
+    const win = window.open('', '_blank', 'width=900,height=800');
+    if (!win) {
+      this.snack.open('Libere os pop-ups deste site para imprimir o relatório.', 'OK', { duration: 4000 });
+      return;
+    }
+    win.document.write('<p style="font-family:sans-serif;padding:24px">Gerando relatório...</p>');
+
+    this.exportingPdf = true;
+    this.dashboardService.getExportSummary(this.exportFrom, this.exportTo).subscribe({
+      next: (s) => {
+        this.exportingPdf = false;
+        win.document.open();
+        win.document.write(this.buildReportHtml(s));
+        win.document.close();
+      },
+      error: (err) => {
+        this.exportingPdf = false;
+        win.close();
+        this.showExportError(err);
+      },
+    });
+  }
+
+  private showExportError(err: any): void {
+    // Com responseType 'blob' a mensagem de erro também chega como blob.
+    if (err?.error instanceof Blob) {
+      err.error.text().then((t: string) => {
+        let msg = 'Erro ao exportar relatório.';
+        try { msg = JSON.parse(t).message || msg; } catch { /* mantém padrão */ }
+        this.snack.open(msg, 'OK', { duration: 4000 });
+      });
+      return;
+    }
+    this.snack.open(err?.error?.message || 'Erro ao exportar relatório.', 'OK', { duration: 4000 });
+  }
+
+  private buildReportHtml(s: ExportSummary): string {
+    const payLabels: Record<string, string> = {
+      dinheiro: 'Dinheiro', cartao_credito: 'Cartão de crédito', cartao_debito: 'Cartão de débito',
+      pix: 'Pix', CASH: 'Dinheiro', CREDIT: 'Crédito', DEBIT: 'Débito', PIX: 'Pix', nao_informado: 'Não informado',
+    };
+    const business = escapeHtml(this.auth.currentUser?.businessName || 'DashFood');
+    const periodo = s.from === s.to ? brDate(s.from) : `${brDate(s.from)} a ${brDate(s.to)}`;
+    const geradoEm = new Date().toLocaleString('pt-BR');
+
+    const topRows = s.topProducts.length
+      ? s.topProducts.map((p, i) => `<tr><td>${i + 1}</td><td>${escapeHtml(p.name)}</td><td class="num">${p.quantity}</td><td class="num">${this.formatBrl(p.revenue)}</td></tr>`).join('')
+      : '<tr><td colspan="4" class="empty">Nenhuma venda no período</td></tr>';
+    const payRows = s.payments.length
+      ? s.payments.map(p => `<tr><td>${escapeHtml(payLabels[p.method] || p.method)}</td><td class="num">${p.orders}</td><td class="num">${this.formatBrl(p.revenue)}</td></tr>`).join('')
+      : '<tr><td colspan="3" class="empty">Nenhum pedido no período</td></tr>';
+
+    return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
+      <title>Relatório ${business} - ${periodo}</title>
+      <style>
+        body { font-family: Arial, sans-serif; color: #222; margin: 32px; }
+        h1 { margin: 0; font-size: 22px; }
+        .sub { color: #666; margin: 4px 0 24px; font-size: 13px; }
+        .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+        .kpi { border: 1px solid #ddd; border-radius: 8px; padding: 12px; }
+        .kpi .v { font-size: 20px; font-weight: 700; }
+        .kpi .l { font-size: 12px; color: #666; margin-top: 4px; }
+        h2 { font-size: 15px; margin: 24px 0 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { border-bottom: 1px solid #eee; padding: 6px 8px; text-align: left; }
+        th { background: #f5f5f5; }
+        .num { text-align: right; }
+        .empty { text-align: center; color: #888; }
+        .note { font-size: 12px; color: #666; margin-top: 24px; }
+        .actions { margin-bottom: 16px; }
+        .actions button { padding: 8px 16px; font-size: 14px; cursor: pointer; }
+        @media print {
+          body { margin: 12mm; }
+          .actions { display: none; }
+          .kpi, table { break-inside: avoid; }
+        }
+      </style></head><body>
+      <div class="actions"><button onclick="window.print()">Imprimir / Salvar PDF</button></div>
+      <h1>${business}</h1>
+      <div class="sub">Relatório de vendas · ${periodo} · gerado em ${geradoEm}</div>
+      <div class="kpis">
+        <div class="kpi"><div class="v">${this.formatBrl(s.revenue)}</div><div class="l">Faturamento</div></div>
+        <div class="kpi"><div class="v">${s.orders}</div><div class="l">Pedidos</div></div>
+        <div class="kpi"><div class="v">${this.formatBrl(s.avgTicket)}</div><div class="l">Ticket médio</div></div>
+        <div class="kpi"><div class="v">${this.formatBrl(s.deliveryFees)}</div><div class="l">Fretes cobrados</div></div>
+      </div>
+      <h2>Produtos mais vendidos</h2>
+      <table><thead><tr><th>#</th><th>Produto</th><th class="num">Qtd.</th><th class="num">Faturamento</th></tr></thead><tbody>${topRows}</tbody></table>
+      <h2>Formas de pagamento</h2>
+      <table><thead><tr><th>Forma</th><th class="num">Pedidos</th><th class="num">Total</th></tr></thead><tbody>${payRows}</tbody></table>
+      <p class="note">Pedidos cancelados não entram nos totais acima.
+        ${s.cancelledOrders ? `No período houve ${s.cancelledOrders} pedido(s) cancelado(s), somando ${this.formatBrl(s.cancelledTotal)}.` : ''}</p>
+      <script>window.onload = () => setTimeout(() => window.print(), 300);<\/script>
+    </body></html>`;
+  }
 
   ngOnInit(): void {
     this.loadData();

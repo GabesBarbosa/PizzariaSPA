@@ -109,3 +109,50 @@
     page-break-inside: avoid;
   }
 }
+
+/* ─── Horário de funcionamento ─── */
+
+.open-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 8px 0 16px;
+  background: #ffebee;
+  color: #c62828;
+
+  &.open { background: #e8f5e9; color: #2e7d32; }
+  &.warn { background: #fff8e1; color: #8d6e00; }
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
+.hours-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hours-row {
+  display: grid;
+  grid-template-columns: 90px 130px 140px 140px;
+  align-items: center;
+  gap: 12px;
+
+  .day-label { font-weight: 500; }
+  .time-field { width: 140px; }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr 1fr;
+    .time-field { width: 100%; }
+  }
+}
+
+.hours-hint {
+  font-size: 12px;
+  color: #666;
+  margin: 12px 0 0;
+}

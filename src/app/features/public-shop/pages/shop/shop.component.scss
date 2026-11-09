@@ -100,6 +100,7 @@
   .meta-item { display: inline-flex; align-items: center; gap: 4px; }
   .meta-dot  { color: var(--border); }
   .meta-open { color: #16a34a; font-weight: 500; }
+  .meta-closed { color: #dc2626; font-weight: 500; }
 
   mat-icon { font-size: 15px; width: 15px; height: 15px; }
 }
@@ -1015,4 +1016,19 @@ mat-form-field { width: 100%; }
   .row-two { grid-template-columns: 1fr; }
   .product-img-wrap { width: 80px; }
   .top-card { width: 110px; }
+}
+
+/* Aviso de loja fechada no checkout (RF27) */
+.closed-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
+
+  mat-icon { flex-shrink: 0; font-size: 20px; width: 20px; height: 20px; }
 }

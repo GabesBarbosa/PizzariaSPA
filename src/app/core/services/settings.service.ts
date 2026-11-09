@@ -29,6 +29,10 @@ export interface DeliveryZone {
   fee: number;
 }
 
+export type DiaSemana = 'dom' | 'seg' | 'ter' | 'qua' | 'qui' | 'sex' | 'sab';
+export interface HorarioDia { aberto: boolean; abre?: string; fecha?: string; } // "18:00"
+export type OpeningHours = Record<DiaSemana, HorarioDia>;
+
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
   private readonly baseUrl = `${environment.apiUrl}/settings`;
@@ -73,5 +77,13 @@ export class SettingsService {
 
   saveTables(tableCount: number): Observable<{ tableCount: number }> {
     return this.http.put<{ tableCount: number }>(`${this.baseUrl}/tables`, { tableCount });
+  }
+
+  getOpeningHours(): Observable<{ openingHours: OpeningHours | null; openNow: boolean | null }> {
+    return this.http.get<{ openingHours: OpeningHours | null; openNow: boolean | null }>(`${this.baseUrl}/opening-hours`);
+  }
+
+  saveOpeningHours(openingHours: OpeningHours): Observable<{ openingHours: OpeningHours; openNow: boolean }> {
+    return this.http.put<{ openingHours: OpeningHours; openNow: boolean }>(`${this.baseUrl}/opening-hours`, { openingHours });
   }
 }

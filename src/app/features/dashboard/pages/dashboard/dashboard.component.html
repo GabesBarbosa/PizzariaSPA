@@ -8,6 +8,37 @@
     </mat-button-toggle-group>
   </div>
 
+  <!-- Exportar relatórios (RF22 / RF25) -->
+  <mat-card class="export-card">
+    <mat-card-content>
+      <div class="export-row">
+        <div class="export-title">
+          <mat-icon>description</mat-icon>
+          <div>
+            <strong>Exportar relatório</strong>
+            <span class="export-sub">Escolha o período e baixe a planilha ou o resumo em PDF.</span>
+          </div>
+        </div>
+        <div class="export-controls">
+          <mat-form-field appearance="outline" class="date-field" subscriptSizing="dynamic">
+            <mat-label>Início</mat-label>
+            <input matInput type="date" [(ngModel)]="exportFrom" [max]="exportTo">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="date-field" subscriptSizing="dynamic">
+            <mat-label>Fim</mat-label>
+            <input matInput type="date" [(ngModel)]="exportTo" [min]="exportFrom">
+          </mat-form-field>
+          <button mat-stroked-button color="primary" (click)="downloadCsv()" [disabled]="exportingCsv || !exportFrom || !exportTo">
+            <mat-icon>table_view</mat-icon> Exportar CSV
+          </button>
+          <button mat-stroked-button (click)="printSummary()" [disabled]="exportingPdf || !exportFrom || !exportTo">
+            <mat-icon>print</mat-icon> Imprimir / Salvar PDF
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
   <div *ngIf="loading" class="loading-wrapper">
     <mat-spinner diameter="48"></mat-spinner>
   </div>

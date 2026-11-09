@@ -12,6 +12,12 @@ export interface NewOrderEvent {
   channel?: string;
 }
 
+export interface HandoffEvent {
+  phone: string;
+  name: string | null;
+  startedAt: number;
+}
+
 export interface WhatsappStatusEvent {
   connected: boolean;
   qrCode: string | null;
@@ -26,6 +32,10 @@ export class NotificationService implements OnDestroy {
 
   readonly newOrder$ = new Subject<NewOrderEvent>();
   readonly whatsappStatus$ = new Subject<WhatsappStatusEvent>();
+  /** Cliente pediu atendimento humano no WhatsApp (RF30). */
+  readonly handoff$ = new Subject<HandoffEvent>();
+  /** Atendimento humano encerrado (o bot voltou a responder). */
+  readonly handoffEnded$ = new Subject<{ phone: string }>();
 
   constructor(
     private zone: NgZone,
@@ -62,6 +72,19 @@ export class NotificationService implements OnDestroy {
         this.zone.run(() => {
           this.whatsappStatus$.next(JSON.parse(event.data));
         });
+      });
+
+      this.eventSource.addEventListener('handoff', (event: any) => {
+        this.zone.run(() => {
+          const data: HandoffEvent = JSON.parse(event.data);
+          this.handoff$.next(data);
+          this.showHandoffAlert(data);
+          this.playSound();
+        });
+      });
+
+      this.eventSource.addEventListener('handoff-ended', (event: any) => {
+        this.zone.run(() => this.handoffEnded$.next(JSON.parse(event.data)));
       });
 
       this.eventSource.onerror = (err: any) => {
@@ -107,6 +130,24 @@ export class NotificationService implements OnDestroy {
     });
   }
 
+  private showHandoffAlert(h: HandoffEvent): void {
+    const quem = h.name ? `${h.name} (${formatPhone(h.phone)})` : formatPhone(h.phone);
+    Swal.fire({
+      title: '🙋 Pedido de atendimento humano',
+      html: `
+        <div style="text-align:left; font-size:15px; line-height:1.7">
+          Cliente <b>${escapeHtml(quem)}</b> pediu para falar com um atendente.<br>
+          O chatbot parou de responder essa conversa. Responda pelo WhatsApp do estabelecimento.<br>
+          <small>Quando terminar, clique em <b>Encerrar atendimento</b> na página WhatsApp.</small>
+        </div>`,
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#25d366',
+      timer: 30000,
+      timerProgressBar: true,
+    });
+  }
+
   private playSound(): void {
     if (!isPlatformBrowser(this.platformId)) return;
     try {
@@ -120,4 +161,16 @@ export class NotificationService implements OnDestroy {
       /* audio blocked by browser policy */
     }
   }
+}
+
+/** 11987654321 → (11) 98765-4321 */
+export function formatPhone(phone: string): string {
+  const d = (phone || '').replace(/\D/g, '');
+  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return phone;
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 }

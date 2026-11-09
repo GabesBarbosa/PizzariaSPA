@@ -11,8 +11,23 @@ import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
-import { SettingsService, BusinessOrigin, DeliveryZone } from '../../../../core/services/settings.service';
+import {
+  SettingsService, BusinessOrigin, DeliveryZone, DiaSemana, OpeningHours,
+} from '../../../../core/services/settings.service';
+
+const DIAS: { key: DiaSemana; label: string }[] = [
+  { key: 'seg', label: 'Segunda' }, { key: 'ter', label: 'Terça' }, { key: 'qua', label: 'Quarta' },
+  { key: 'qui', label: 'Quinta' }, { key: 'sex', label: 'Sexta' }, { key: 'sab', label: 'Sábado' },
+  { key: 'dom', label: 'Domingo' },
+];
+
+function defaultOpeningHours(): OpeningHours {
+  const h = {} as OpeningHours;
+  for (const d of DIAS) h[d.key] = { aberto: d.key !== 'dom', abre: '18:00', fecha: '23:00' };
+  return h;
+}
 import { AuthService } from '../../../../core/services/auth.service';
 import { environment } from '../../../../../environments/environment';
 import { BrlPipe } from '../../../../shared/utils/brl.pipe';
@@ -33,7 +48,7 @@ interface ViaCepInfo {
     MatCardModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatTableModule,
     MatDividerModule, MatSnackBarModule, MatProgressSpinnerModule,
-    BrlPipe,
+    MatSlideToggleModule, BrlPipe,
   ],
   templateUrl: './delivery-settings.component.html',
   styleUrl: './delivery-settings.component.scss',
@@ -53,6 +68,13 @@ export class DeliverySettingsComponent implements OnInit {
   savingTables = signal(false);
 
   hasOrigin = signal(false);
+
+  // Horário de funcionamento (RF27)
+  readonly dias = DIAS;
+  openingHours: OpeningHours = defaultOpeningHours();
+  hoursConfigured = signal(false);
+  openNow = signal<boolean | null>(null);
+  savingHours = signal(false);
 
   newZone: DeliveryZone = { minKm: 0, maxKm: 0, fee: 0 };
 
@@ -83,6 +105,52 @@ export class DeliverySettingsComponent implements OnInit {
     this.loadOrigin();
     this.loadZones();
     this.loadTables();
+    this.loadOpeningHours();
+  }
+
+  /* ─── Horário de funcionamento ─── */
+
+  private loadOpeningHours(): void {
+    this.settings.getOpeningHours().subscribe({
+      next: ({ openingHours, openNow }) => {
+        if (openingHours) {
+          // Mantém "abre/fecha" sugeridos nos dias fechados para facilitar reabrir.
+          const base = defaultOpeningHours();
+          for (const d of DIAS) base[d.key] = { ...base[d.key], ...openingHours[d.key] };
+          this.openingHours = base;
+          this.hoursConfigured.set(true);
+        }
+        this.openNow.set(openNow);
+      },
+    });
+  }
+
+  saveOpeningHours(): void {
+    for (const d of DIAS) {
+      const h = this.openingHours[d.key];
+      if (!h.aberto) continue;
+      if (!h.abre || !h.fecha) {
+        this.snack.open(`${d.label}: preencha os horários de abrir e fechar.`, 'OK', { duration: 3500 });
+        return;
+      }
+      if (h.abre === h.fecha) {
+        this.snack.open(`${d.label}: abrir e fechar não podem ser iguais.`, 'OK', { duration: 3500 });
+        return;
+      }
+    }
+    this.savingHours.set(true);
+    this.settings.saveOpeningHours(this.openingHours).subscribe({
+      next: ({ openNow }) => {
+        this.savingHours.set(false);
+        this.hoursConfigured.set(true);
+        this.openNow.set(openNow);
+        this.snack.open('Horário de funcionamento salvo!', 'OK', { duration: 3000 });
+      },
+      error: (err) => {
+        this.savingHours.set(false);
+        this.snack.open(err?.error?.message || 'Erro ao salvar horário.', 'OK', { duration: 4000 });
+      },
+    });
   }
 
   /* ─── Origin ─── */

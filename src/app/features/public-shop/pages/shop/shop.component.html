@@ -36,8 +36,16 @@
             @if (business()!.originCity) {
               <span class="meta-item"><mat-icon>place</mat-icon>{{ business()!.originCity }}</span>
             }
-            <span class="meta-dot">·</span>
-            <span class="meta-item meta-open"><mat-icon>schedule</mat-icon>Aberto agora</span>
+            @if (business()!.openNow !== null) {
+              <span class="meta-dot">·</span>
+              @if (business()!.openNow) {
+                <span class="meta-item meta-open"><mat-icon>schedule</mat-icon>Aberto agora</span>
+              } @else {
+                <span class="meta-item meta-closed">
+                  <mat-icon>schedule</mat-icon>Fechado{{ business()!.nextOpening ? ' · abre ' + business()!.nextOpening : '' }}
+                </span>
+              }
+            }
           </div>
 
           <!-- Tiles de informação -->
@@ -111,6 +119,17 @@
               </div>
             </div>
           </div>
+          @if (openingHoursList().length) {
+            <div class="info-row">
+              <mat-icon>schedule</mat-icon>
+              <div>
+                <span class="info-label">Horário de funcionamento</span>
+                @for (d of openingHoursList(); track d.label) {
+                  <span class="info-value">{{ d.label }}: {{ d.text }}</span>
+                }
+              </div>
+            </div>
+          }
           @if (business()!.deliveryZones.length) {
             <div class="info-row">
               <mat-icon>two_wheeler</mat-icon>
@@ -443,9 +462,17 @@
             </mat-form-field>
           </div>
 
-          <button mat-flat-button color="primary" type="submit" class="submit-btn" [disabled]="submitting()">
+          @if (isClosed()) {
+            <div class="closed-warning">
+              <mat-icon>schedule</mat-icon>
+              <span>Estamos fechados agora{{ business()!.nextOpening ? ' — abrimos ' + business()!.nextOpening : '' }}. Você pode montar a sacola e finalizar quando abrirmos.</span>
+            </div>
+          }
+          <button mat-flat-button color="primary" type="submit" class="submit-btn" [disabled]="submitting() || isClosed()">
             @if (submitting()) {
               <mat-spinner diameter="20"></mat-spinner>
+            } @else if (isClosed()) {
+              <span>Estabelecimento fechado</span>
             } @else {
               <span>Finalizar pedido — {{ orderTotal() | brl }}</span>
             }

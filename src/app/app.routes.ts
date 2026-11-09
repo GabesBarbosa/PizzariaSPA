@@ -8,6 +8,17 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/pages/login/login.component').then(m => m.LoginComponent)
   },
+  // Recuperação de senha (RF05) — públicas, sem o authGuard
+  {
+    path: 'esqueci-senha',
+    loadComponent: () =>
+      import('./features/auth/pages/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
+  },
+  {
+    path: 'redefinir-senha',
+    loadComponent: () =>
+      import('./features/auth/pages/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
+  },
   {
     path: 'c',
     loadChildren: () =>

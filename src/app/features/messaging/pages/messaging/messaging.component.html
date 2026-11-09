@@ -38,6 +38,34 @@
   </mat-card-content>
 </mat-card>
 
+<!-- Atendimentos aguardando (RF30 / RN10) -->
+<mat-card class="handoff-card" [class.has-items]="handoffs.length > 0">
+  <mat-card-content>
+    <div class="handoff-header">
+      <mat-icon>support_agent</mat-icon>
+      <div>
+        <strong>Atendimentos aguardando</strong>
+        <p class="mode-desc">
+          Clientes que pediram para falar com uma pessoa. O chatbot fica em silêncio nessas conversas até você encerrar
+          (ou depois de 2 horas sem mensagens). Responda pelo WhatsApp do estabelecimento.
+        </p>
+      </div>
+    </div>
+
+    <p *ngIf="handoffs.length === 0" class="handoff-empty">Nenhum cliente aguardando atendimento.</p>
+
+    <div *ngFor="let h of handoffs" class="handoff-item">
+      <div class="handoff-info">
+        <strong>{{ h.name || 'Cliente sem cadastro' }}</strong>
+        <span>{{ h.phone | phone }} · desde {{ h.startedAt | date:'HH:mm' }}</span>
+      </div>
+      <button mat-flat-button color="primary" (click)="endHandoff(h)" [disabled]="endingPhone === h.phone">
+        <mat-icon>smart_toy</mat-icon> Encerrar atendimento
+      </button>
+    </div>
+  </mat-card-content>
+</mat-card>
+
 <!-- Status da conexão -->
 <mat-card class="status-card" [ngClass]="{ 'connected': whatsappStatus?.connected, 'disconnected': whatsappStatus && !whatsappStatus.connected }">
   <mat-card-content>

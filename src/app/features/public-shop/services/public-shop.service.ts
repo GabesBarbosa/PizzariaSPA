@@ -22,6 +22,11 @@ export interface PublicBusinessDto {
   hasOrigin: boolean;
   deliveryZones: DeliveryZoneDto[];
   originCity: string | null;
+  /** null = horário não cadastrado (não bloqueia pedidos). */
+  openingHours: Record<string, { aberto: boolean; abre?: string; fecha?: string }> | null;
+  openNow: boolean | null;
+  /** Ex.: "hoje às 18:00", "amanhã às 11:00". */
+  nextOpening: string | null;
 }
 
 export interface PublicVariationDto {

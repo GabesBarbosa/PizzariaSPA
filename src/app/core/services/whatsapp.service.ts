@@ -40,4 +40,21 @@ export class WhatsappService {
   sendToAll(message: string): Observable<BulkResult> {
     return this.http.post<BulkResult>(`${this.baseUrl}/send-all`, { message });
   }
+
+  /** Conversas em que o cliente pediu atendimento humano (RF30). */
+  listHandoffs(): Observable<{ handoffs: Handoff[] }> {
+    return this.http.get<{ handoffs: Handoff[] }>(`${this.baseUrl}/handoffs`);
+  }
+
+  /** "Encerrar atendimento": o chatbot volta a responder essa conversa. */
+  endHandoff(phone: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.baseUrl}/handoffs/${encodeURIComponent(phone)}`);
+  }
+}
+
+export interface Handoff {
+  phone: string;
+  name: string | null;
+  startedAt: string;
+  expiresAt: string;
 }

@@ -15,6 +15,37 @@ h1 {
   margin: 0;
 }
 
+.export-card {
+  margin-bottom: 16px;
+
+  .export-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .export-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    mat-icon { color: #1976d2; }
+    strong { display: block; }
+    .export-sub { font-size: 13px; color: #666; }
+  }
+
+  .export-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .date-field { width: 160px; }
+}
+
 // KPI Cards — 5 cards
 .kpi-grid {
   display: grid;

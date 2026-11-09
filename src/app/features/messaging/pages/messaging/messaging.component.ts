@@ -16,7 +16,7 @@ import { Subscription } from 'rxjs';
 
 import { Customer } from '../../../../shared/models';
 import { CustomerService } from '../../../../core/services/customer.service';
-import { WhatsappService, WhatsappStatus, BulkResult } from '../../../../core/services/whatsapp.service';
+import { WhatsappService, WhatsappStatus, BulkResult, Handoff } from '../../../../core/services/whatsapp.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SettingsService, ChatbotMode } from '../../../../core/services/settings.service';
 import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
@@ -46,6 +46,11 @@ export class MessagingComponent implements OnInit, OnDestroy {
   // Chatbot mode
   chatbotMode: ChatbotMode = 'triggers';
   savingMode = false;
+
+  // Atendimento humano (RF30)
+  handoffs: Handoff[] = [];
+  endingPhone: string | null = null;
+  private handoffSubs: Subscription[] = [];
 
   // Data
   customers: Customer[] = [];
@@ -83,6 +88,14 @@ export class MessagingComponent implements OnInit, OnDestroy {
       this.checkingStatus = false;
     });
 
+    this.loadHandoffs();
+    this.handoffSubs.push(
+      this.notificationService.handoff$.subscribe(() => this.loadHandoffs()),
+      this.notificationService.handoffEnded$.subscribe(({ phone }) => {
+        this.handoffs = this.handoffs.filter(h => h.phone !== phone);
+      }),
+    );
+
     this.customerService.getAll().subscribe({
       next: (c) => { this.customers = c; this.loading = false; },
       error: () => { this.customers = []; this.loading = false; }
@@ -112,6 +125,35 @@ export class MessagingComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.statusSub?.unsubscribe();
+    this.handoffSubs.forEach(s => s.unsubscribe());
+  }
+
+  // ── Atendimento humano ──
+  loadHandoffs(): void {
+    this.whatsappService.listHandoffs().subscribe({
+      next: ({ handoffs }) => this.handoffs = handoffs,
+      error: () => {},
+    });
+  }
+
+  endHandoff(h: Handoff): void {
+    this.endingPhone = h.phone;
+    this.whatsappService.endHandoff(h.phone).subscribe({
+      next: () => {
+        this.endingPhone = null;
+        this.handoffs = this.handoffs.filter(x => x.phone !== h.phone);
+        this.snackBar.open('Atendimento encerrado. O chatbot voltou a responder.', 'OK', { duration: 3000 });
+      },
+      error: (err) => {
+        this.endingPhone = null;
+        // 404: já tinha expirado (2h sem mensagens) ou foi encerrado em outra aba.
+        if (err?.status === 404) {
+          this.handoffs = this.handoffs.filter(x => x.phone !== h.phone);
+          return;
+        }
+        this.snackBar.open('Erro ao encerrar atendimento.', 'OK', { duration: 3000 });
+      },
+    });
   }
 
   // ── Filtering ──

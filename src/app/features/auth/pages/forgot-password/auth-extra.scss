@@ -1,0 +1,32 @@
+// Estilos extras das telas "Esqueci minha senha" e "Redefinir senha".
+// O layout base vem de login.component.scss.
+
+.page-title {
+  margin: 0 0 8px;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.page-text {
+  margin: 0 0 16px;
+  color: rgba(0, 0, 0, 0.64);
+  font-size: 0.95rem;
+}
+
+.sent-box,
+.error-box {
+  text-align: center;
+  padding: 8px 0;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+
+  p { margin: 8px 0; }
+  .hint { font-size: 0.85rem; color: rgba(0, 0, 0, 0.54); }
+}
+
+.sent-box mat-icon { color: #2e7d32; }
+.error-box mat-icon { color: #c62828; }

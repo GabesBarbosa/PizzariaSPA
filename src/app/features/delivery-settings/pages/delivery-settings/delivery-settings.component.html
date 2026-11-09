@@ -1,6 +1,54 @@
 <div class="delivery-settings">
   <h1>Configuração de Entrega</h1>
 
+  <!-- Horário de funcionamento (RF27) -->
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Horário de funcionamento</mat-card-title>
+      <mat-card-subtitle>
+        Usado pelo chatbot para responder "que horas vocês abrem?" e pelo cardápio online para aceitar pedidos só com a loja aberta.
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      @if (hoursConfigured() && openNow() !== null) {
+        <div class="open-status" [class.open]="openNow()">
+          <mat-icon>{{ openNow() ? 'storefront' : 'schedule' }}</mat-icon>
+          {{ openNow() ? 'Aberto agora' : 'Fechado agora' }} (horário de Brasília)
+        </div>
+      } @else if (!hoursConfigured()) {
+        <div class="open-status warn">
+          <mat-icon>info</mat-icon> Horário ainda não cadastrado. Até salvar, o cardápio aceita pedidos a qualquer hora.
+        </div>
+      }
+
+      <div class="hours-grid">
+        @for (d of dias; track d.key) {
+          <div class="hours-row">
+            <span class="day-label">{{ d.label }}</span>
+            <mat-slide-toggle [(ngModel)]="openingHours[d.key].aberto" color="primary">
+              {{ openingHours[d.key].aberto ? 'Aberto' : 'Fechado' }}
+            </mat-slide-toggle>
+            <mat-form-field appearance="outline" class="time-field" subscriptSizing="dynamic">
+              <mat-label>Abre</mat-label>
+              <input matInput type="time" [(ngModel)]="openingHours[d.key].abre" [disabled]="!openingHours[d.key].aberto">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="time-field" subscriptSizing="dynamic">
+              <mat-label>Fecha</mat-label>
+              <input matInput type="time" [(ngModel)]="openingHours[d.key].fecha" [disabled]="!openingHours[d.key].aberto">
+            </mat-form-field>
+          </div>
+        }
+      </div>
+      <p class="hours-hint">Se fechar depois da meia-noite (ex.: 18:00 às 01:00), basta colocar o horário de fechar menor que o de abrir.</p>
+
+      <div class="save-row">
+        <button mat-flat-button color="primary" type="button" (click)="saveOpeningHours()" [disabled]="savingHours()">
+          @if (savingHours()) { <mat-spinner diameter="18"></mat-spinner> } @else { <span>Salvar horário</span> }
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
   <mat-card>
     <mat-card-header>
       <mat-card-title>Endereço da loja (origem)</mat-card-title>

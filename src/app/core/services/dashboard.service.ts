@@ -23,4 +23,26 @@ export class DashboardService {
   getCustomerAnalytics(period: DashboardPeriod = 'week'): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/customer-analytics`, { params: { period } });
   }
+
+  /** RF22/RF25: CSV com um pedido por linha. Vem como blob para o interceptor continuar mandando o token. */
+  exportOrdersCsv(from: string, to: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/export/orders`, { params: { from, to }, responseType: 'blob' });
+  }
+
+  getExportSummary(from: string, to: string): Observable<ExportSummary> {
+    return this.http.get<ExportSummary>(`${this.baseUrl}/export/summary`, { params: { from, to } });
+  }
+}
+
+export interface ExportSummary {
+  from: string;
+  to: string;
+  orders: number;
+  revenue: number;
+  avgTicket: number;
+  deliveryFees: number;
+  cancelledOrders: number;
+  cancelledTotal: number;
+  topProducts: { name: string; quantity: number; revenue: number }[];
+  payments: { method: string; orders: number; revenue: number }[];
 }

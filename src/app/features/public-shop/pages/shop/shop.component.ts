@@ -61,6 +61,22 @@ export class ShopComponent implements OnInit {
   submitting = signal(false);
 
   business = signal<PublicBusinessDto | null>(null);
+
+  /** Fechado só quando há horário cadastrado e a loja está fora dele (RF27). */
+  isClosed = computed(() => this.business()?.openNow === false);
+
+  openingHoursList = computed(() => {
+    const h = this.business()?.openingHours;
+    if (!h) return [];
+    const dias: [string, string][] = [
+      ['seg', 'Segunda'], ['ter', 'Terça'], ['qua', 'Quarta'], ['qui', 'Quinta'],
+      ['sex', 'Sexta'], ['sab', 'Sábado'], ['dom', 'Domingo'],
+    ];
+    return dias.map(([k, label]) => ({
+      label,
+      text: h[k]?.aberto ? `${h[k].abre} às ${h[k].fecha}` : 'fechado',
+    }));
+  });
   categories = signal<string[]>([]);
   menuByCategory = signal<Record<string, PublicProductDto[]>>({});
   activeCategory = signal<string>('');
@@ -515,6 +531,13 @@ export class ShopComponent implements OnInit {
         },
         error: (err) => {
           this.submitting.set(false);
+          // 409 CLOSED = a loja fechou enquanto o cliente montava o pedido.
+          if (err?.status === 409 && err.error?.code === 'CLOSED') {
+            this.snack.open(err.error.message || 'Estabelecimento fechado.', 'OK', { duration: 5000 });
+            const b = this.business();
+            if (b) this.business.set({ ...b, openNow: false });
+            return;
+          }
           // 409 = algum item esgotou entre a montagem da sacola e o envio do pedido.
           if (err?.status === 409) {
             this.snack.open(err.error?.message || 'Um item da sacola esgotou.', 'OK', { duration: 5000 });
