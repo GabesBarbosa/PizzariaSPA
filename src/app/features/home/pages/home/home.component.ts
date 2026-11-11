@@ -65,7 +65,8 @@ export class HomeComponent implements OnInit {
       RECEIVED: 'Recebido',
       PREPARING: 'Preparando',
       OUT_FOR_DELIVERY: 'Saiu p/ Entrega',
-      DELIVERED: 'Entregue'
+      DELIVERED: 'Entregue',
+      CANCELLED: 'Cancelado'
     };
     return labels[status] || status;
   }
@@ -75,7 +76,8 @@ export class HomeComponent implements OnInit {
       RECEIVED: '#1976d2',
       PREPARING: '#f57c00',
       OUT_FOR_DELIVERY: '#7b1fa2',
-      DELIVERED: '#388e3c'
+      DELIVERED: '#388e3c',
+      CANCELLED: '#c62828'
     };
     return colors[status] || '#757575';
   }

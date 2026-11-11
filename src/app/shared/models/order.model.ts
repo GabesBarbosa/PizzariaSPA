@@ -1,7 +1,7 @@
 import { Customer } from './customer.model';
 import { Product } from './product.model';
 
-export type OrderStatus = 'RECEIVED' | 'PREPARING' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
+export type OrderStatus = 'RECEIVED' | 'PREPARING' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED';
 
 export type DeliveryType = 'delivery' | 'pickup';
 

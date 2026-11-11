@@ -67,7 +67,7 @@
                     class="action-btn">
               <mat-icon>{{ getNextStatusIcon(next) }}</mat-icon>
             </button>
-            <span *ngIf="!getNextStatus(o)" class="delivered-badge">
+            <span *ngIf="!getNextStatus(o) && o.status !== 'CANCELLED'" class="delivered-badge">
               <mat-icon>check_circle</mat-icon> Entregue
             </span>
           </div>

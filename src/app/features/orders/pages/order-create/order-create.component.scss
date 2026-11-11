@@ -391,3 +391,49 @@ h3 {
   color: rgba(0,0,0,0.54);
   font-style: italic;
 }
+
+// ─── Celular ───────────────────────────────────────────────
+@media (max-width: 700px) {
+  // Etapas: só os números, e o nome apenas da etapa atual
+  ::ng-deep .mat-horizontal-stepper-header-container { margin: 0 -8px; }
+  ::ng-deep .mat-horizontal-stepper-header { padding: 0 6px !important; }
+  ::ng-deep .mat-horizontal-stepper-header .mat-step-label:not(.mat-step-label-selected) { display: none; }
+  ::ng-deep .mat-horizontal-content-container { padding: 0 0 16px !important; }
+  ::ng-deep .mat-stepper-horizontal-line { min-width: 8px; }
+
+  .row-two { grid-template-columns: 1fr; gap: 0; }
+
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+
+  .add-bar {
+    flex-wrap: wrap;
+    padding: 12px;
+    &__product { flex-basis: 100%; }
+    .qty-field { width: 90px; }
+    button { flex: 1; }
+  }
+
+  // Carrinho em cartões
+  .cart-table {
+    tr.mat-mdc-header-row { display: none; }
+    tr.mat-mdc-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "product  subtotal"
+        "unit     unit"
+        "quantity actions";
+      gap: 2px 8px;
+      align-items: center;
+      height: auto;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    }
+    td.mat-mdc-cell { border: none; padding: 0; min-height: 0; }
+    .mat-column-product { grid-area: product; font-weight: 500; }
+    .mat-column-subtotal { grid-area: subtotal; font-weight: 600; text-align: right; }
+    .mat-column-unitPrice { grid-area: unit; font-size: 0.8rem; color: rgba(0, 0, 0, 0.6); }
+    .mat-column-quantity { grid-area: quantity; }
+    .mat-column-actions { grid-area: actions; text-align: right; }
+  }
+}

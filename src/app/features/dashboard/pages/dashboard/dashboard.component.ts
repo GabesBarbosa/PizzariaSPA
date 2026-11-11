@@ -253,7 +253,7 @@ export class DashboardComponent implements OnInit {
     this.todayOrders = d.todayOrders;
     this.avgTicket = d.avgTicket;
     this.topProductName = d.topProductName;
-    this.avgDeliveryTime = d.avgDeliveryTime;
+    this.avgDeliveryTime = Math.round(Number(d.avgDeliveryTime) || 0);
 
     const days = (d.salesByDay || []).map((r: any) =>
       new Date(r.day).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })

@@ -41,3 +41,36 @@ mat-card {
 .mat-mdc-chip {
   font-size: 0.8rem !important;
 }
+
+/* ─── Celular ─────────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .page-header {
+    flex-wrap: wrap;
+    gap: 8px;
+
+    h1 { font-size: 1.3rem; }
+  }
+
+  /* Tabelas que não viraram cartão rolam para o lado dentro do cartão */
+  mat-card-content:has(> table),
+  mat-card-content:has(> .mat-mdc-table) {
+    overflow-x: auto;
+  }
+
+  mat-card { margin-bottom: 12px; }
+
+  /* Pop-ups (diálogos e SweetAlert) cabem na tela */
+  .cdk-overlay-pane.mat-mdc-dialog-panel { max-width: calc(100vw - 24px) !important; }
+  .swal2-popup { width: calc(100vw - 32px) !important; max-width: 32em; }
+}
+
+/* Listas do Material: texto longo (endereço, observação) quebra linha em vez de sumir */
+@media (max-width: 700px) {
+  .mat-mdc-list-item.mdc-list-item { height: auto !important; padding-top: 8px; padding-bottom: 8px; }
+  .mat-mdc-list-item .mdc-list-item__primary-text,
+  .mat-mdc-list-item .mdc-list-item__secondary-text,
+  .mat-mdc-list-item-unscoped-content { white-space: normal !important; }
+}
+
+/* Ícones nunca encolhem quando o texto ao lado é grande */
+.mat-icon { flex-shrink: 0; }

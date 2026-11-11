@@ -56,6 +56,10 @@ import { RouterLink } from '@angular/router';
     .spacer {
       flex: 1 1 auto;
     }
+    @media (max-width: 600px) {
+      .navbar { padding: 0 4px; }
+      .brand-logo { height: 96px; margin-left: 0; }
+    }
     .menu-btn {
       transition: transform 0.2s ease;
     }

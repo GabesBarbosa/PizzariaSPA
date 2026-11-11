@@ -104,3 +104,58 @@
     height: 18px;
   }
 }
+
+.status-CANCELLED {
+  background-color: #c62828;
+}
+
+// ─── Celular: cada pedido vira um cartão ───────────────────
+@media (max-width: 700px) {
+  mat-card-content { padding: 0 8px; }
+
+  tr.mat-mdc-header-row { display: none; }
+
+  tr.mat-mdc-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "id     customer total"
+      "status status   date"
+      "actions actions actions";
+    gap: 6px 10px;
+    align-items: center;
+    height: auto;
+    padding: 12px 4px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  td.mat-mdc-cell {
+    border: none;
+    padding: 0;
+    min-height: 0;
+  }
+
+  .mat-column-id {
+    grid-area: id;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.54);
+    &::before { content: '#'; }
+  }
+  .mat-column-customer { grid-area: customer; font-weight: 500; }
+  .mat-column-total { grid-area: total; font-weight: 600; text-align: right; }
+  .mat-column-status { grid-area: status; }
+  .mat-column-createdAt {
+    grid-area: date;
+    font-size: 0.8rem;
+    color: rgba(0, 0, 0, 0.6);
+    text-align: right;
+  }
+
+  .actions-cell {
+    grid-area: actions;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+  }
+}

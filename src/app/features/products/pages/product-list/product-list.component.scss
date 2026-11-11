@@ -84,3 +84,39 @@
     height: 16px;
   }
 }
+
+// ─── Celular: cada produto vira um cartão ──────────────────
+@media (max-width: 700px) {
+  .page-header { flex-wrap: wrap; gap: 8px; }
+  mat-card-content { padding: 0 8px; }
+
+  tr.mat-mdc-header-row { display: none; }
+
+  tr.mat-mdc-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "name     price"
+      "category actions"
+      "stock    stock"
+      "desc     desc";
+    gap: 6px 8px;
+    align-items: center;
+    height: auto;
+    padding: 12px 4px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  td.mat-mdc-cell { border: none; padding: 0; min-height: 0; }
+
+  .mat-column-name { grid-area: name; font-weight: 600; }
+  .mat-column-price { grid-area: price; font-weight: 600; text-align: right; }
+  .mat-column-category { grid-area: category; }
+  .mat-column-actions { grid-area: actions; text-align: right; white-space: nowrap; }
+  .mat-column-stock { grid-area: stock; }
+  .mat-column-description {
+    grid-area: desc;
+    font-size: 0.8rem;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}

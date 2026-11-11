@@ -319,3 +319,36 @@
   font-size: 13px;
   color: rgba(0, 0, 0, 0.7);
 }
+
+// ─── Celular ───────────────────────────────────────────────
+@media (max-width: 700px) {
+  .page-header { flex-wrap: wrap; gap: 8px; }
+
+  .chatbot-mode-card .mode-row {
+    flex-direction: column;
+    align-items: stretch;
+
+    .mode-actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+  }
+
+  .handoff-card .handoff-empty,
+  .handoff-card .handoff-item { margin-left: 0; }
+
+  // Grupos de botões ocupam a largura e quebram linha se não couberem
+  mat-button-toggle-group {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    ::ng-deep .mat-button-toggle { flex: 1 1 auto; }
+    ::ng-deep .mat-button-toggle-label-content { padding: 0 8px; line-height: 40px; }
+  }
+
+  .main-layout { grid-template-columns: minmax(0, 1fr); }
+  .customers-card, .message-card { min-width: 0; }
+  .customer-list { max-height: 320px; }
+  .result-summary { flex-wrap: wrap; gap: 12px; }
+}
